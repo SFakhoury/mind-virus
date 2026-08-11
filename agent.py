@@ -57,15 +57,33 @@ class Agent:
         speaker: "Agent",
         message: str,
         importance: int,
+        interpretation: str | None = None,
     ) -> Memory:
-        """Store a statement heard from another agent."""
+        """Store the listener's memory of another agent's statement."""
         cleaned_message = message.strip()
 
         if not cleaned_message:
             raise ValueError("Dialogue message cannot be empty.")
 
+        if interpretation is None:
+            memory_content = (
+                f'{speaker.name} said: "{cleaned_message}"'
+            )
+        else:
+            cleaned_interpretation = interpretation.strip()
+
+            if not cleaned_interpretation:
+                raise ValueError(
+                    "Dialogue interpretation cannot be empty."
+                )
+
+            memory_content = (
+                f"{speaker.name} said something I interpreted as: "
+                f'"{cleaned_interpretation}"'
+            )
+
         return self.remember(
-            content=f'{speaker.name} said: "{cleaned_message}"',
+            content=memory_content,
             importance=importance,
             source="dialogue",
         )
