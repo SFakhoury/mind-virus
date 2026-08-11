@@ -40,6 +40,36 @@ class Agent:
         self.memories.add(memory)
         return memory
 
+    def observe(
+        self,
+        event: str,
+        importance: int,
+    ) -> Memory:
+        """Store something the agent directly observed."""
+        return self.remember(
+            content=event,
+            importance=importance,
+            source="observation",
+        )
+
+    def hear(
+        self,
+        speaker: "Agent",
+        message: str,
+        importance: int,
+    ) -> Memory:
+        """Store a statement heard from another agent."""
+        cleaned_message = message.strip()
+
+        if not cleaned_message:
+            raise ValueError("Dialogue message cannot be empty.")
+
+        return self.remember(
+            content=f'{speaker.name} said: "{cleaned_message}"',
+            importance=importance,
+            source="dialogue",
+        )
+
     def recall(
         self,
         context: str,
