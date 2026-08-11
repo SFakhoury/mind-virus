@@ -1,5 +1,6 @@
-from dataclasses import dataclass, field
+﻿from dataclasses import dataclass, field
 from datetime import datetime, timezone
+import math
 import re
 from typing import Literal
 from uuid import uuid4
@@ -26,7 +27,9 @@ class Memory:
             raise ValueError("Memory content cannot be empty.")
 
         if not 1 <= self.importance <= 10:
-            raise ValueError("Memory importance must be between 1 and 10.")
+            raise ValueError(
+                "Memory importance must be between 1 and 10."
+            )
 
 
 class MemoryStream:
@@ -50,37 +53,81 @@ class MemoryStream:
 
         return list(reversed(self._memories[-limit:]))
 
-    def retrieve(self, query: str, limit: int = 5) -> list[Memory]:
-        """Return memories matching a query, ranked deterministically.
-
-        Memories with more query-word matches rank first. Importance breaks
-        relevance ties, followed by recency. Memories with no matching words
-        are excluded.
-        """
+    def retrieve(
+        self,
+        query: str,
+        limit: int = 5,
+    ) -> list[Memory]:
+        """Rank memories by recency, importance, and relevance."""
         if not query.strip():
-            raise ValueError("Query cannot be empty.")
+            raise ValueError("Retrieval query cannot be empty.")
 
         if limit < 1:
             raise ValueError("Limit must be at least 1.")
 
-        query_words = self._words(query)
-        ranked: list[tuple[int, int, int, Memory]] = []
+        now = datetime.now(timezone.utc)
 
-        for position, memory in enumerate(self._memories):
-            relevance = len(query_words & self._words(memory.content))
-            if relevance:
-                ranked.append(
-                    (relevance, memory.importance, position, memory)
-                )
+        scored = [
+            (
+                self._score(memory, query, now),
+                memory.created_at,
+                memory,
+            )
+            for memory in self._memories
+        ]
 
-        ranked.sort(key=lambda item: item[:3], reverse=True)
-        return [item[3] for item in ranked[:limit]]
+        scored.sort(
+            key=lambda item: (item[0], item[1]),
+            reverse=True,
+        )
+
+        return [
+            memory
+            for _, _, memory in scored[:limit]
+        ]
 
     @staticmethod
-    def _words(text: str) -> set[str]:
-        """Normalize text into lowercase words for basic retrieval."""
-        return set(re.findall(r"[a-z0-9]+", text.lower()))
+    def _score(
+        memory: Memory,
+        query: str,
+        now: datetime,
+    ) -> float:
+        """Calculate the combined Phase 1 retrieval score."""
+        age_hours = max(
+            0.0,
+            (now - memory.created_at).total_seconds() / 3600,
+        )
+
+        recency = math.exp(-age_hours / 24.0)
+        importance = memory.importance / 10.0
+        relevance = MemoryStream._lexical_relevance(
+            query,
+            memory.content,
+        )
+
+        return recency + importance + relevance
+
+    @staticmethod
+    def _lexical_relevance(
+        query: str,
+        content: str,
+    ) -> float:
+        """Calculate temporary Phase 1 word-overlap relevance."""
+        query_words = set(
+            re.findall(r"[a-z0-9]+", query.lower())
+        )
+        content_words = set(
+            re.findall(r"[a-z0-9]+", content.lower())
+        )
+
+        if not query_words or not content_words:
+            return 0.0
+
+        intersection = query_words & content_words
+        union = query_words | content_words
+
+        return len(intersection) / len(union)
 
     def __len__(self) -> int:
-        """Return the number of memories in the stream."""
+        """Return the number of stored memories."""
         return len(self._memories)
