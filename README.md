@@ -42,9 +42,9 @@ This distinction separates information exposure from actual belief formation.
 
 ## Project Status
 
-**Current phase: Phase 0 - Foundations**
+**Current phase: Phase 1 - Core Agent Loop complete**
 
-The architecture and research foundations are currently being documented before implementation begins.
+The core agent loop now supports private memories, scored retrieval, dialogue, and listener-specific interpretation.
 
 ## Documentation
 
@@ -66,3 +66,4 @@ The architecture and research foundations are currently being documented before 
 Experimental claims will be based on repeated logged trials rather than individual LLM outputs.
 
 The project prioritizes reproducibility, controlled comparisons, clear documentation, and minimal experimental confounds over unnecessary simulation complexity.
+
