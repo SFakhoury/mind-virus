@@ -42,7 +42,7 @@ This distinction separates information exposure from actual belief formation.
 
 ## Project Status
 
-**Current phase: Phase 3 - Controlled Experiments**
+**Current phase: Phase 4 - Model-Backed Agents**
 
 The core agent loop now supports private memories, scored retrieval, dialogue, and listener-specific interpretation.
 
@@ -66,6 +66,7 @@ The core agent loop now supports private memories, scored retrieval, dialogue, a
 Experimental claims will be based on repeated logged trials rather than individual LLM outputs.
 
 The project prioritizes reproducibility, controlled comparisons, clear documentation, and minimal experimental confounds over unnecessary simulation complexity.
+
 
 
 
