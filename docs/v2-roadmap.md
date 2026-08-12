@@ -100,6 +100,9 @@ evidence-explicit prompts, baseline and skeptical listeners, with per-call
 checkpoints, observed token accounting, and a $0.10 hard cost ceiling.
 A separate resumable extension tests the same model, prompt, and intervention
 matrix across three distinct claims before any larger confirmatory expansion.
+A separate powered confirmatory protocol freezes 27 new trials per condition
+and cell (648 structured decisions total), primary and secondary outcomes,
+direction, alpha, power target, pricing assumptions, and a $1.50 ceiling.
 
 - Multiple model families or versions
 - Prompt and temperature sensitivity analysis
