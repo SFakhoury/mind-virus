@@ -150,6 +150,58 @@ class WorldState:
         output.write_text(json.dumps(self.to_dict(), indent=2), encoding="utf-8")
         return output
 
+    @classmethod
+    def from_dict(cls, data: dict[str, object]) -> "WorldState":
+        """Restore an exact world snapshot from serialized state."""
+        raw_locations = data["locations"]
+        raw_routes = data["routes"]
+        raw_residents = data["residents"]
+        if not isinstance(raw_locations, dict):
+            raise ValueError("World locations must be an object.")
+        if not isinstance(raw_routes, list):
+            raise ValueError("World routes must be a list.")
+        if not isinstance(raw_residents, dict):
+            raise ValueError("World residents must be an object.")
+
+        locations = {
+            key: Location(**value)
+            for key, value in raw_locations.items()
+        }
+        routes = tuple(Route(**value) for value in raw_routes)
+        residents: dict[str, ResidentState] = {}
+        for key, value in raw_residents.items():
+            resident_data = dict(value)
+            resident_data["schedule"] = tuple(
+                ScheduleEntry(**entry)
+                for entry in resident_data["schedule"]
+            )
+            residents[key] = ResidentState(**resident_data)
+
+        return cls(
+            locations=locations,
+            routes=routes,
+            residents=residents,
+            absolute_minute=int(data["absolute_minute"]),
+            event_log=list(data.get("event_log", [])),
+        )
+
+    @classmethod
+    def load(cls, path: str | Path) -> "WorldState":
+        """Load a world checkpoint from disk."""
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            raise ValueError("World checkpoint must contain an object.")
+        return cls.from_dict(data)
+
+
+def replay_default_world(absolute_minute: int) -> WorldState:
+    """Deterministically replay the default world to a target minute."""
+    world = build_default_world()
+    if absolute_minute < world.absolute_minute:
+        raise ValueError("Replay target cannot precede the world start.")
+    world.tick(absolute_minute - world.absolute_minute)
+    return world
+
 
 def build_default_world() -> WorldState:
     locations = {

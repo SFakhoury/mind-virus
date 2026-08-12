@@ -3,7 +3,13 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from mind_virus.world import Location, Route, build_default_world
+from mind_virus.world import (
+    Location,
+    Route,
+    WorldState,
+    build_default_world,
+    replay_default_world,
+)
 
 
 class WorldTests(unittest.TestCase):
@@ -51,6 +57,39 @@ class WorldTests(unittest.TestCase):
         self.assertEqual(saved["absolute_minute"], 495)
         self.assertIn("Alice", saved["residents"])
         self.assertGreater(len(saved["event_log"]), 0)
+
+    def test_saved_world_loads_to_identical_state(self):
+        world = build_default_world()
+        world.tick(700)
+        with TemporaryDirectory() as directory:
+            checkpoint = world.save(Path(directory) / "world.json")
+            restored = WorldState.load(checkpoint)
+
+        self.assertEqual(restored.to_dict(), world.to_dict())
+
+    def test_resumed_world_matches_uninterrupted_world(self):
+        uninterrupted = build_default_world()
+        uninterrupted.tick(1600)
+
+        first_run = build_default_world()
+        first_run.tick(800)
+        with TemporaryDirectory() as directory:
+            checkpoint = first_run.save(Path(directory) / "world.json")
+            resumed = WorldState.load(checkpoint)
+        resumed.tick(800)
+
+        self.assertEqual(resumed.to_dict(), uninterrupted.to_dict())
+
+    def test_replay_matches_original_world(self):
+        original = build_default_world()
+        original.tick(2880)
+        replayed = replay_default_world(original.absolute_minute)
+
+        self.assertEqual(replayed.to_dict(), original.to_dict())
+
+    def test_replay_rejects_time_before_world_start(self):
+        with self.assertRaises(ValueError):
+            replay_default_world(479)
 
 
 if __name__ == "__main__":
