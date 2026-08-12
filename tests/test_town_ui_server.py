@@ -19,13 +19,13 @@ class TownUIServerTests(unittest.TestCase):
         self.assertTrue((UI_DIRECTORY / "styles.css").is_file())
         self.assertTrue((UI_DIRECTORY / "town.js").is_file())
 
-    def test_town_supports_continuing_conversations_and_days(self):
+    def test_town_connects_to_python_api_and_advances_days(self):
         script = (UI_DIRECTORY / "town.js").read_text(encoding="utf-8")
-        self.assertIn("followUps", script)
         self.assertIn("elapsedHours", script)
         self.assertIn("DAY ${String(day)", script)
-        self.assertIn("let target=people.find", script)
-        self.assertIn("I work there, and no giveaway was announced", script)
+        self.assertIn('fetch("/api/state")', script)
+        self.assertIn('fetch("/api/step"', script)
+        self.assertIn("LIVE AI MODE", script)
 
     def test_simulation_bob_uses_firsthand_evidence(self):
         alice = Agent("Alice", "Reporter")
