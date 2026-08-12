@@ -56,6 +56,15 @@ class AutonomousTownTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             AutonomousTown(world=self.world, agents={})
 
+    def test_default_town_produces_an_early_autonomous_conversation(self):
+        town = AutonomousTown()
+
+        town.tick(20)
+
+        self.assertGreaterEqual(len(town.conversations), 1)
+        self.assertEqual(town.conversations[0].speaker, "Dana")
+        self.assertTrue(town.conversations[0].supporting_memory_ids)
+
 
 if __name__ == "__main__":
     unittest.main()

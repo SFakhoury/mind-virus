@@ -102,7 +102,7 @@ class AutonomousTown:
 
 
 def build_default_agents() -> dict[str, Agent]:
-    return {
+    agents = {
         "Alice": Agent(
             "Alice",
             "A careful local reporter who attributes sources clearly.",
@@ -120,3 +120,8 @@ def build_default_agents() -> dict[str, Agent]:
             "A skeptical town planner who seeks direct evidence.",
         ),
     }
+    agents["Dana"].observe(
+        "At Town Hall, I review public plans and current town events.",
+        importance=5,
+    )
+    return agents

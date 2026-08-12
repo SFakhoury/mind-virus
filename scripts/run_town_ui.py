@@ -9,13 +9,13 @@ import os
 from pathlib import Path
 import webbrowser
 
+from mind_virus.autonomous_town import AutonomousTown
 from mind_virus.decision import OpenAIDecisionMaker, TransmissionDecision
 from mind_virus.town_session import TownSession
 from mind_virus.town_dialogue import (
     OpenAITownDialogueMaker,
     TownDialogue,
 )
-from mind_virus.world import build_default_world
 
 
 HOST = "127.0.0.1"
@@ -104,7 +104,7 @@ def usage_summary(decision_maker, dialogue_maker):
 
 def make_handler(
     session: TownSession,
-    world,
+    town: AutonomousTown,
     mode: str,
     decision_maker,
     dialogue_maker,
@@ -125,7 +125,7 @@ def make_handler(
 
         def do_GET(self):
             if self.path == "/api/world":
-                self.send_json(world.browser_state())
+                self.send_json(town.browser_state())
                 return
             if self.path == "/api/state":
                 self.send_json(snapshot())
@@ -134,9 +134,9 @@ def make_handler(
 
         def do_POST(self):
             if self.path == "/api/world/tick":
-                world.tick(5)
-                world.save(WORLD_OUTPUT)
-                self.send_json(world.browser_state())
+                town.tick(5)
+                town.world.save(WORLD_OUTPUT)
+                self.send_json(town.browser_state())
                 return
             if self.path == "/api/chat":
                 try:
@@ -186,12 +186,12 @@ def main() -> None:
         dialogue_maker = simulation_dialogue
 
     session = TownSession(decision_maker)
-    world = build_default_world()
+    town = AutonomousTown()
     server = ThreadingHTTPServer(
         (HOST, PORT),
         make_handler(
             session,
-            world,
+            town,
             mode,
             decision_maker,
             dialogue_maker,

@@ -200,7 +200,10 @@ class WorldState:
                 )
 
     def _advance_resident(self, resident: ResidentState) -> None:
-        resident.needs.advance(resident.activity)
+        needs_activity = (
+            "travelling" if resident.travel_remaining > 0 else resident.activity
+        )
+        resident.needs.advance(needs_activity)
         if resident.travel_remaining > 0:
             resident.travel_remaining -= 1
             if resident.travel_remaining == 0:
@@ -522,6 +525,7 @@ def build_default_world() -> WorldState:
                 ScheduleEntry(510, "town_hall", "planning"),
                 ScheduleEntry(1050, "dana_home", "personal time"),
             ),
+            needs=Needs(social=0.76),
         ),
     }
     scheduled_events = (

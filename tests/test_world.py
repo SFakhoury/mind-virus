@@ -98,10 +98,10 @@ class WorldTests(unittest.TestCase):
 
     def test_needs_change_deterministically_with_time(self):
         world = build_default_world()
-        initial = world.residents["Dana"].needs
+        initial = world.residents["Charlie"].needs
         initial_values = (initial.energy, initial.hunger, initial.social)
         world.tick(20)
-        changed = world.residents["Dana"].needs
+        changed = world.residents["Charlie"].needs
 
         self.assertNotEqual(
             (changed.energy, changed.hunger, changed.social),
