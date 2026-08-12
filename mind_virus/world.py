@@ -33,6 +33,23 @@ class Route:
 
 
 @dataclass(frozen=True)
+class WorldEvent:
+    id: str
+    absolute_minute: int
+    location_id: str
+    description: str
+    importance: int = 5
+
+    def __post_init__(self) -> None:
+        if not self.id.strip() or not self.description.strip():
+            raise ValueError("World event id and description cannot be empty.")
+        if self.absolute_minute < 0:
+            raise ValueError("World event time cannot be negative.")
+        if not 1 <= self.importance <= 10:
+            raise ValueError("World event importance must be between 1 and 10.")
+
+
+@dataclass(frozen=True)
 class ScheduleEntry:
     minute_of_day: int
     location_id: str
@@ -101,6 +118,8 @@ class WorldState:
     residents: dict[str, ResidentState]
     absolute_minute: int = 480
     event_log: list[dict[str, object]] = field(default_factory=list)
+    scheduled_events: tuple[WorldEvent, ...] = ()
+    triggered_event_ids: set[str] = field(default_factory=set)
 
     @property
     def day(self) -> int:
@@ -123,8 +142,28 @@ class WorldState:
             raise ValueError("Tick duration must be at least one minute.")
         for _ in range(minutes):
             self.absolute_minute += 1
+            self._trigger_scheduled_events()
             for resident in self.residents.values():
                 self._advance_resident(resident)
+
+    def _trigger_scheduled_events(self) -> None:
+        for event in self.scheduled_events:
+            if (
+                event.absolute_minute == self.absolute_minute
+                and event.id not in self.triggered_event_ids
+            ):
+                self.triggered_event_ids.add(event.id)
+                self.event_log.append(
+                    {
+                        "minute": self.absolute_minute,
+                        "day": self.day,
+                        "type": "world_event",
+                        "event_id": event.id,
+                        "location": event.location_id,
+                        "description": event.description,
+                        "importance": event.importance,
+                    }
+                )
 
     def _advance_resident(self, resident: ResidentState) -> None:
         resident.needs.advance(resident.activity)
@@ -217,6 +256,10 @@ class WorldState:
                 key: asdict(value) for key, value in self.residents.items()
             },
             "event_log": list(self.event_log),
+            "scheduled_events": [
+                asdict(event) for event in self.scheduled_events
+            ],
+            "triggered_event_ids": sorted(self.triggered_event_ids),
         }
 
     def save(self, path: str | Path) -> Path:
@@ -261,6 +304,11 @@ class WorldState:
             residents=residents,
             absolute_minute=int(data["absolute_minute"]),
             event_log=list(data.get("event_log", [])),
+            scheduled_events=tuple(
+                WorldEvent(**event)
+                for event in data.get("scheduled_events", [])
+            ),
+            triggered_event_ids=set(data.get("triggered_event_ids", [])),
         )
 
     @classmethod
@@ -342,4 +390,32 @@ def build_default_world() -> WorldState:
             ),
         ),
     }
-    return WorldState(locations, routes, residents)
+    scheduled_events = (
+        WorldEvent(
+            "day1_bus_inspection",
+            660,
+            "bus_stop",
+            "A routine bus-stop safety inspection begins.",
+            4,
+        ),
+        WorldEvent(
+            "day2_library_program",
+            1980,
+            "library",
+            "The library hosts its scheduled community reading program.",
+            5,
+        ),
+        WorldEvent(
+            "day3_town_meeting",
+            3420,
+            "town_hall",
+            "The public town-planning meeting begins.",
+            6,
+        ),
+    )
+    return WorldState(
+        locations,
+        routes,
+        residents,
+        scheduled_events=scheduled_events,
+    )
