@@ -18,7 +18,7 @@ CLAIMS = (
 
 @dataclass(frozen=True)
 class MultiClaimRobustnessPlan:
-    base: LiveRobustnessPlan = LiveRobustnessPlan()
+    base: LiveRobustnessPlan = LiveRobustnessPlan(estimated_output_tokens=200)
     claims: tuple[tuple[str, str], ...] = CLAIMS
     cost_ceiling_usd: float = 0.20
 

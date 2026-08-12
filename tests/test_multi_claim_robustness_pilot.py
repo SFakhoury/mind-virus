@@ -28,6 +28,7 @@ class MultiClaimRobustnessPilotTests(unittest.TestCase):
     def test_default_plan_has_three_claims_and_bounded_cost(self):
         plan = MultiClaimRobustnessPlan()
         self.assertEqual(plan.planned_calls, 96)
+        self.assertEqual(plan.base.estimated_output_tokens, 200)
         self.assertLess(plan.estimated_cost_usd, plan.cost_ceiling_usd)
 
     def test_collection_covers_every_claim_and_cell(self):
