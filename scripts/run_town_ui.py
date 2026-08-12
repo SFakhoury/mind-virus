@@ -108,11 +108,17 @@ def make_handler(
     mode: str,
     decision_maker,
     dialogue_maker,
+    experience: str = "autonomous-town",
 ):
     def snapshot():
         usage = usage_summary(decision_maker, dialogue_maker)
         session.save(SESSION_OUTPUT, mode=mode, usage=usage)
-        return {"mode": mode, "usage": usage, **session.state()}
+        return {
+            "mode": mode,
+            "experience": experience,
+            "usage": usage,
+            **session.state(),
+        }
 
     class TownHandler(SimpleHTTPRequestHandler):
         def send_json(self, payload, status=200):
@@ -166,12 +172,22 @@ def parse_args():
         action="store_true",
         help="Use paid model-backed listener decisions.",
     )
+    parser.add_argument(
+        "--research-demo",
+        action="store_true",
+        help="Run the legacy controlled rumor-propagation UI sequence.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     mode = "live-ai" if args.live else "simulation"
+    experience = (
+        "legacy-research-demo"
+        if args.research_demo or args.live
+        else "autonomous-town"
+    )
     if args.live:
         if not os.getenv("OPENAI_API_KEY"):
             raise RuntimeError("OPENAI_API_KEY is not configured.")
@@ -195,12 +211,14 @@ def main() -> None:
             mode,
             decision_maker,
             dialogue_maker,
+            experience,
         ),
     )
     url = f"http://{HOST}:{PORT}"
     print("PHASE 7: PYTHON-BACKED INTERACTIVE TOWN")
     print("-" * 48)
     print(f"Mode: {mode}")
+    print(f"Experience: {experience}")
     print(f"Open: {url}")
     print("Press Ctrl+C to stop the town server.")
     webbrowser.open(url)

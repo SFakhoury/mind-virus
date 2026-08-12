@@ -41,7 +41,15 @@ class TownUIServerTests(unittest.TestCase):
         self.assertIn("world.autonomous_conversations", script)
         self.assertIn("seenAutonomousConversations", script)
         self.assertIn("source.bubbleUntil", script)
+        self.assertIn('state.experience==="autonomous-town"', script)
+        self.assertIn("!autonomousMode&&!sessionStopped", script)
         self.assertIn("LIVE AI MODE", script)
+
+    def test_autonomous_mode_hides_research_only_panels(self):
+        markup = (UI_DIRECTORY / "index.html").read_text(encoding="utf-8")
+
+        self.assertIn('id="research-claim"', markup)
+        self.assertIn('id="research-metrics"', markup)
 
     def test_simulation_bob_uses_firsthand_evidence(self):
         alice = Agent("Alice", "Reporter")
