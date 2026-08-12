@@ -19,6 +19,12 @@ save/resume equivalence test, and a replay producing identical state.
 
 ## Phase 9: Autonomous Cognition
 
+**Status: complete.** Validated across a deterministic three-day run with
+auditable daily plans, need-driven actions, agent-selected partners and
+topics, contextual memory retrieval, grounded conversation lineage,
+separate listener belief/repetition decisions, and evidence-linked
+reflections.
+
 - Daily planning from personality, role, needs, relationships, and memories
 - Retrieval tied to the current place, person, goal, and conversation
 - Reflection that produces higher-level memories from accumulated experience

@@ -46,13 +46,13 @@ This distinction separates information exposure from actual belief formation.
 
 ## Project Status
 
-**Current phase: Phase 7 complete - Python-Backed Interactive AI Town**
+**Current phase: Phase 9 complete - Autonomous Cognition**
 
 The research pipeline and visual prototype are complete. The core system supports private memories, scored retrieval, model-backed interpretation, controlled experiments, confirmatory statistical analysis, and an animated browser-based town.
 
 Development toward the full research platform continues under the
-[v2.0 roadmap](docs/v2-roadmap.md). The current work is Phase 8: Persistent
-World Engine.
+[v2.0 roadmap](docs/v2-roadmap.md). Phases 8 and 9 are complete. The next
+milestone is Phase 10: Persistent Live AI Sessions.
 
 ## Launch the Visual Town
 
