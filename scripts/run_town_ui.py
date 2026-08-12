@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import argparse
 from dataclasses import asdict
@@ -15,6 +15,7 @@ from mind_virus.api_auth import APIAuthenticator
 from mind_virus.background_jobs import BackgroundJobQueue
 from mind_virus.decision import OpenAIDecisionMaker, TransmissionDecision
 from mind_virus.town_session import TownSession
+from mind_virus.world import WorldState
 from mind_virus.production_store import ProductionStore
 from mind_virus.live_sync import LiveStateBroker
 from mind_virus.observability import OperationalMetrics, production_logger
@@ -40,6 +41,13 @@ WORLD_OUTPUT = (
 DATABASE_OUTPUT = Path(__file__).resolve().parent.parent / "results" / "mind_virus.db"
 LOG_OUTPUT = Path(__file__).resolve().parent.parent / "results" / "mind_virus.log.jsonl"
 API_VERSION = "v1"
+
+
+def load_town(path: Path = WORLD_OUTPUT) -> AutonomousTown:
+    """Restore the durable world when available, otherwise create a new town."""
+    if path.is_file():
+        return AutonomousTown(world=WorldState.load(path))
+    return AutonomousTown()
 
 
 def simulation_decision(listener, speaker, message):
@@ -343,3 +351,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

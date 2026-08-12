@@ -1,10 +1,12 @@
 ﻿import unittest
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from scripts.run_town_ui import (
     HOST,
     PORT,
     UI_DIRECTORY,
+    load_town,
     simulation_decision,
     usage_summary,
 )
@@ -73,6 +75,17 @@ class TownUIServerTests(unittest.TestCase):
         self.assertIn('os.getenv("MIND_VIRUS_HOST", "127.0.0.1")', source)
         self.assertIn("if not args.production", source)
 
+    def test_saved_world_is_restored_after_restart(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "town_world.json"
+            original = load_town(path)
+            original.world.absolute_minute = 1195
+            original.world.save(path)
+
+            restored = load_town(path)
+
+            self.assertEqual(restored.world.absolute_minute, 1195)
+
     def test_autonomous_mode_hides_research_only_panels(self):
         markup = (UI_DIRECTORY / "index.html").read_text(encoding="utf-8")
 
@@ -99,3 +112,4 @@ class TownUIServerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
