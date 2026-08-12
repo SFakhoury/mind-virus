@@ -1,5 +1,6 @@
 ﻿from __future__ import annotations
 
+from dataclasses import dataclass
 import os
 from typing import Any
 
@@ -21,6 +22,31 @@ class TransmissionDecision(BaseModel):
     reason: str = Field(min_length=1)
 
 
+@dataclass
+class ModelUsage:
+    """Accumulated model usage for one decision maker."""
+
+    calls: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0
+
+    @property
+    def estimated_cost_usd(self) -> float:
+        """Calculate observed GPT-5.6 Luna token cost."""
+        input_cost = (
+            self.input_tokens
+            / 1_000_000
+            * 1.00
+        )
+        output_cost = (
+            self.output_tokens
+            / 1_000_000
+            * 6.00
+        )
+
+        return input_cost + output_cost
+
+
 class OpenAIDecisionMaker:
     """Create structured listener decisions with an OpenAI model."""
 
@@ -40,6 +66,7 @@ class OpenAIDecisionMaker:
             or os.getenv("MIND_VIRUS_MODEL")
             or "gpt-5.6-luna"
         )
+        self.usage = ModelUsage()
 
     def __call__(
         self,
@@ -66,11 +93,13 @@ class OpenAIDecisionMaker:
             "misinformation experiment. Keep four processes distinct: "
             "hearing, remembering, believing, and repeating. "
             "The listener may remember a claim without believing or "
-            "repeating it. Decide according to the personality and "
-            "evidence shown. Preserve the exact speaker identity. "
-            "The remembered_message must be written from the listener's "
-            "perspective and attribute the statement to the speaker. "
-            "Do not invent evidence or events."
+            "repeating it. Repeats_claim means the listener would "
+            "communicate the claim to another person, even if clearly "
+            "labeled as uncertain or unverified. Decide according to "
+            "the personality and evidence shown. Preserve the exact "
+            "speaker identity. The remembered_message must be written "
+            "from the listener's perspective and attribute the "
+            "statement to the speaker. Do not invent evidence or events."
         )
 
         prompt = (
@@ -88,6 +117,30 @@ class OpenAIDecisionMaker:
             text_format=TransmissionDecision,
             reasoning={"effort": "none"},
         )
+
+        self.usage.calls += 1
+
+        response_usage = getattr(
+            response,
+            "usage",
+            None,
+        )
+
+        if response_usage is not None:
+            self.usage.input_tokens += int(
+                getattr(
+                    response_usage,
+                    "input_tokens",
+                    0,
+                )
+            )
+            self.usage.output_tokens += int(
+                getattr(
+                    response_usage,
+                    "output_tokens",
+                    0,
+                )
+            )
 
         decision = response.output_parsed
 
