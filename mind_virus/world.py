@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+import heapq
 import json
 from pathlib import Path
 
@@ -101,6 +102,8 @@ class ResidentState:
     needs: Needs = field(default_factory=Needs)
     relationships: dict[str, float] = field(default_factory=dict)
     interaction_history: list[dict[str, object]] = field(default_factory=list)
+    decision_source: str = "schedule"
+    decision_reason: str = "following schedule"
 
     def next_schedule_entry(self, minute_of_day: int) -> ScheduleEntry:
         eligible = [
@@ -137,6 +140,34 @@ class WorldState:
             if {route.start, route.end} == {start, end}:
                 return route.travel_minutes
         raise ValueError(f"No direct route from {start} to {end}.")
+
+    def next_route_step(self, start: str, end: str) -> str:
+        """Return the next location on the shortest route to a destination."""
+        if start == end:
+            return end
+        queue: list[tuple[int, str, str | None]] = [(0, start, None)]
+        best: dict[str, int] = {start: 0}
+        while queue:
+            distance, location, first_step = heapq.heappop(queue)
+            if location == end:
+                return first_step or end
+            if distance != best.get(location):
+                continue
+            for route in self.routes:
+                if route.start == location:
+                    neighbor = route.end
+                elif route.end == location:
+                    neighbor = route.start
+                else:
+                    continue
+                new_distance = distance + route.travel_minutes
+                if new_distance < best.get(neighbor, 10**9):
+                    best[neighbor] = new_distance
+                    heapq.heappush(
+                        queue,
+                        (new_distance, neighbor, first_step or neighbor),
+                    )
+        raise ValueError(f"No route from {start} to {end}.")
 
     def tick(self, minutes: int = 1) -> None:
         if minutes < 1:
@@ -177,15 +208,23 @@ class WorldState:
                 self._record("arrival", resident)
             return
 
-        entry = resident.next_schedule_entry(self.minute_of_day)
-        resident.activity = entry.activity
-        if entry.location_id == resident.location_id:
+        from mind_virus.cognition import choose_resident_action
+
+        decision = choose_resident_action(resident, self.minute_of_day)
+        resident.activity = decision.activity
+        resident.decision_source = decision.source
+        resident.decision_reason = decision.reason
+        if decision.destination_id == resident.location_id:
             return
+        next_stop = self.next_route_step(
+            resident.location_id,
+            decision.destination_id,
+        )
         resident.travel_origin_id = resident.location_id
-        resident.destination_id = entry.location_id
+        resident.destination_id = next_stop
         resident.travel_remaining = self.travel_minutes(
             resident.location_id,
-            entry.location_id,
+            next_stop,
         )
         self._record("departure", resident)
 
@@ -300,6 +339,8 @@ class WorldState:
                     "x": self.resident_position(resident)[0],
                     "y": self.resident_position(resident)[1],
                     "needs": asdict(resident.needs),
+                    "decision_source": resident.decision_source,
+                    "decision_reason": resident.decision_reason,
                 }
                 for name, resident in self.residents.items()
             },

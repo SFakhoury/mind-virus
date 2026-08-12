@@ -36,6 +36,8 @@ class TownUIServerTests(unittest.TestCase):
         self.assertIn("p.x+=(p.tx-p.x)*.055", script)
         self.assertIn("p.y+=(p.ty-p.y)*.055", script)
         self.assertIn("resident.activity", script)
+        self.assertIn("resident.decision_source", script)
+        self.assertIn("resident.decision_reason", script)
         self.assertIn("LIVE AI MODE", script)
 
     def test_simulation_bob_uses_firsthand_evidence(self):

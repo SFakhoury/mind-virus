@@ -1,0 +1,90 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Literal
+
+from mind_virus.world import ResidentState, ScheduleEntry
+
+
+DecisionSource = Literal["schedule", "energy", "hunger", "social"]
+
+
+@dataclass(frozen=True)
+class ResidentDecision:
+    """A traceable action selected from a resident's schedule and needs."""
+
+    activity: str
+    destination_id: str
+    source: DecisionSource
+    urgency: float
+    reason: str
+
+
+def choose_resident_action(
+    resident: ResidentState,
+    minute_of_day: int,
+) -> ResidentDecision:
+    """Choose the resident's most urgent action without mutating the world."""
+    if not 0 <= minute_of_day < 1440:
+        raise ValueError("Decision minute must be within one day.")
+
+    scheduled = resident.next_schedule_entry(minute_of_day)
+    needs = resident.needs
+    candidates = (
+        (
+            1.0 - needs.energy,
+            0.75,
+            "resting",
+            _home_id(resident),
+            "energy",
+            f"energy is low ({needs.energy:.2f})",
+        ),
+        (
+            needs.hunger,
+            0.70,
+            "eating",
+            "bakery",
+            "hunger",
+            f"hunger is high ({needs.hunger:.2f})",
+        ),
+        (
+            needs.social,
+            0.75,
+            "socializing",
+            "town_hall",
+            "social",
+            f"social need is high ({needs.social:.2f})",
+        ),
+    )
+    urgent = [candidate for candidate in candidates if candidate[0] >= candidate[1]]
+    if urgent:
+        score, _, activity, destination, source, reason = max(
+            urgent,
+            key=lambda candidate: candidate[0],
+        )
+        return ResidentDecision(
+            activity=activity,
+            destination_id=destination,
+            source=source,
+            urgency=score,
+            reason=reason,
+        )
+
+    return _scheduled_decision(scheduled)
+
+
+def _scheduled_decision(entry: ScheduleEntry) -> ResidentDecision:
+    return ResidentDecision(
+        activity=entry.activity,
+        destination_id=entry.location_id,
+        source="schedule",
+        urgency=0.0,
+        reason=f"following the {entry.activity} schedule",
+    )
+
+
+def _home_id(resident: ResidentState) -> str:
+    home_id = f"{resident.name.lower()}_home"
+    if any(entry.location_id == home_id for entry in resident.schedule):
+        return home_id
+    return resident.location_id

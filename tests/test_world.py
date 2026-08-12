@@ -191,6 +191,43 @@ class WorldTests(unittest.TestCase):
 
         self.assertEqual(restored.browser_state(), world.browser_state())
 
+    def test_shortest_route_returns_next_connected_location(self):
+        world = build_default_world()
+
+        self.assertEqual(world.next_route_step("library", "bakery"), "town_hall")
+
+    def test_hunger_decision_controls_activity_and_travel(self):
+        world = build_default_world()
+        alice = world.residents["Alice"]
+        alice.location_id = "town_hall"
+        alice.needs.hunger = 0.9
+
+        world.tick()
+
+        self.assertEqual(alice.activity, "eating")
+        self.assertEqual(alice.decision_source, "hunger")
+        self.assertEqual(alice.destination_id, "bakery")
+        self.assertIn("hunger is high", alice.decision_reason)
+
+    def test_indirect_autonomous_destination_uses_road_network(self):
+        world = build_default_world()
+        charlie = world.residents["Charlie"]
+        charlie.location_id = "library"
+        charlie.needs.hunger = 0.9
+
+        world.tick()
+
+        self.assertEqual(charlie.activity, "eating")
+        self.assertEqual(charlie.destination_id, "town_hall")
+
+    def test_browser_state_explains_resident_decision(self):
+        world = build_default_world()
+        world.tick()
+
+        alice = world.browser_state()["residents"]["Alice"]
+        self.assertEqual(alice["decision_source"], "schedule")
+        self.assertIn("schedule", alice["decision_reason"])
+
 
 if __name__ == "__main__":
     unittest.main()
