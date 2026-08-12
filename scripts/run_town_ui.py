@@ -24,8 +24,8 @@ from mind_virus.town_dialogue import (
 )
 
 
-HOST = "127.0.0.1"
-PORT = 8000
+HOST = os.getenv("MIND_VIRUS_HOST", "127.0.0.1")
+PORT = int(os.getenv("MIND_VIRUS_PORT", "8000"))
 UI_DIRECTORY = Path(__file__).resolve().parent.parent / "town_ui"
 SESSION_OUTPUT = (
     Path(__file__).resolve().parent.parent
@@ -330,7 +330,8 @@ def main() -> None:
     print(f"Experience: {experience}")
     print(f"Open: {url}")
     print("Press Ctrl+C to stop the town server.")
-    webbrowser.open(url)
+    if not args.production:
+        webbrowser.open(url)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

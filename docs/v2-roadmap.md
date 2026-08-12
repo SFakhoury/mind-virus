@@ -129,6 +129,8 @@ retries, while mutation locks prevent concurrent requests from racing shared
 town and agent state.
 Structured JSON logging redacts secrets, operational metrics expose uptime and
 request/error counters, and health checks include database and queue status.
+An unprivileged Docker image, persistent Compose volume, container health
+check, and GitHub Actions test/build pipeline now validate every change.
 
 - Versioned backend API and persistent database
 - Browser client with live state synchronization

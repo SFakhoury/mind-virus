@@ -1,0 +1,19 @@
+services:
+  mind-virus:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      MIND_VIRUS_ACCESS_TOKEN: ${MIND_VIRUS_ACCESS_TOKEN:?set MIND_VIRUS_ACCESS_TOKEN}
+      MIND_VIRUS_MODEL: ${MIND_VIRUS_MODEL:-gpt-5.6-luna}
+    volumes:
+      - mind-virus-data:/app/results
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  mind-virus-data:

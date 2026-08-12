@@ -70,6 +70,8 @@ class TownUIServerTests(unittest.TestCase):
         self.assertIn('"/api/v1/metrics"', source)
         self.assertIn("errors_total", source)
         self.assertIn("production_logger", source)
+        self.assertIn('os.getenv("MIND_VIRUS_HOST", "127.0.0.1")', source)
+        self.assertIn("if not args.production", source)
 
     def test_autonomous_mode_hides_research_only_panels(self):
         markup = (UI_DIRECTORY / "index.html").read_text(encoding="utf-8")
