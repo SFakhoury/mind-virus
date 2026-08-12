@@ -57,6 +57,27 @@ class PersistentSessionTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 PersistentSession.load(path)
 
+    def test_budget_usage_and_pending_reservations_survive_resume(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "session.json"
+            session = PersistentSession.create(path)
+            reservation = session.budget.reserve(
+                "Alice", estimated_input_tokens=100, estimated_output_tokens=20
+            )
+            session.budget.reconcile(
+                reservation.id,
+                actual_input_tokens=80,
+                actual_output_tokens=10,
+            )
+            session.budget.reserve(
+                "Bob", estimated_input_tokens=50, estimated_output_tokens=10
+            )
+            session.save()
+
+            restored = PersistentSession.load(path)
+
+            self.assertEqual(restored.budget.to_dict(), session.budget.to_dict())
+
 
 if __name__ == "__main__":
     unittest.main()

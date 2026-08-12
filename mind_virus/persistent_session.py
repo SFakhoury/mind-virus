@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 import json
 from pathlib import Path
 from uuid import uuid4
 
 from mind_virus.agent import Agent
+from mind_virus.api_budget import BudgetLedger
 from mind_virus.autonomous_town import (
     AutonomousConversation,
     AutonomousReflection,
@@ -28,6 +29,7 @@ class PersistentSession:
     created_at: str
     updated_at: str
     status: str = "running"
+    budget: BudgetLedger = field(default_factory=BudgetLedger)
 
     @classmethod
     def create(
@@ -68,6 +70,7 @@ class PersistentSession:
             "created_at": self.created_at,
             "updated_at": self.updated_at,
             "status": self.status,
+            "budget": self.budget.to_dict(),
             "event_cursor": self.town._event_cursor,
             "world": self.town.world.to_dict(),
             "agents": {
@@ -160,6 +163,9 @@ class PersistentSession:
             created_at=data["created_at"],
             updated_at=data["updated_at"],
             status=data["status"],
+            budget=BudgetLedger.from_dict(
+                data.get("budget", BudgetLedger().to_dict())
+            ),
         )
 
 
