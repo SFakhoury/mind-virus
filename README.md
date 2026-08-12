@@ -46,13 +46,20 @@ This distinction separates information exposure from actual belief formation.
 
 ## Project Status
 
-**Current phase: Phase 9 complete - Autonomous Cognition**
+**Current phase: Phase 10 complete - Persistent Live AI Sessions**
 
 The research pipeline and visual prototype are complete. The core system supports private memories, scored retrieval, model-backed interpretation, controlled experiments, confirmatory statistical analysis, and an animated browser-based town.
 
 Development toward the full research platform continues under the
-[v2.0 roadmap](docs/v2-roadmap.md). Phases 8 and 9 are complete. The next
-milestone is Phase 10: Persistent Live AI Sessions.
+[v2.0 roadmap](docs/v2-roadmap.md). Phase 10 adds atomic session checkpoints,
+resumable town state, persistent API budgets, grounded live dialogue,
+hallucination rejection, bounded retries, and safe deterministic fallbacks.
+
+Validate the complete persistence and resume path without paid API calls:
+
+```powershell
+python -m scripts.validate_phase10_session
+```
 
 ## Launch the Visual Town
 
