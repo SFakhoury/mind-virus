@@ -61,7 +61,9 @@ networks directly from that specification. Matched condition-trials are now
 expanded and randomized reproducibly, with shared assignment and network seeds
 preserved across each matched comparison. Control, skepticism, fact-checking,
 and inoculation interventions can now be assigned at reproducible intensities
-while holding the original claim source constant.
+while holding the original claim source constant. Confirmatory hypotheses and
+outcome definitions can now be frozen in tamper-evident preregistrations that
+cannot be silently replaced or created from pilot configurations.
 
 - Multiple social-network structures and town sizes
 - Multiple misinformation topics and evidence conditions
