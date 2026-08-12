@@ -23,6 +23,8 @@ class TownUIServerTests(unittest.TestCase):
         self.assertIn("followUps", script)
         self.assertIn("elapsedHours", script)
         self.assertIn("DAY ${String(day)", script)
+        self.assertIn("let target=people.find", script)
+        self.assertIn("I work there, and no giveaway was announced", script)
 
 
 if __name__ == "__main__":
