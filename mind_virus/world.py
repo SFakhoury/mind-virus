@@ -105,6 +105,13 @@ class ResidentState:
     decision_source: str = "schedule"
     decision_reason: str = "following schedule"
     interaction_until: int = 0
+    daily_goal_day: int = 0
+    daily_goal: str = ""
+    goal_destination_id: str | None = None
+    goal_activity: str | None = None
+    goal_source: str = ""
+    goal_reason: str = ""
+    goal_memory_ids: tuple[str, ...] = ()
 
     def next_schedule_entry(self, minute_of_day: int) -> ScheduleEntry:
         eligible = [
@@ -393,6 +400,9 @@ class WorldState:
                     "needs": asdict(resident.needs),
                     "decision_source": resident.decision_source,
                     "decision_reason": resident.decision_reason,
+                    "daily_goal": resident.daily_goal,
+                    "goal_source": resident.goal_source,
+                    "goal_reason": resident.goal_reason,
                 }
                 for name, resident in self.residents.items()
             },
@@ -432,6 +442,9 @@ class WorldState:
             )
             resident_data["needs"] = Needs(
                 **resident_data.get("needs", {})
+            )
+            resident_data["goal_memory_ids"] = tuple(
+                resident_data.get("goal_memory_ids", ())
             )
             residents[key] = ResidentState(**resident_data)
 

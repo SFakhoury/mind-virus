@@ -228,6 +228,21 @@ class WorldTests(unittest.TestCase):
         self.assertEqual(alice["decision_source"], "schedule")
         self.assertIn("schedule", alice["decision_reason"])
 
+    def test_daily_goal_memory_lineage_survives_checkpoint(self):
+        world = build_default_world()
+        alice = world.residents["Alice"]
+        alice.daily_goal_day = 1
+        alice.daily_goal = "investigate bakery report"
+        alice.goal_destination_id = "bakery"
+        alice.goal_activity = "investigating"
+        alice.goal_source = "memory"
+        alice.goal_memory_ids = ("memory-1",)
+        with TemporaryDirectory() as directory:
+            checkpoint = world.save(Path(directory) / "world.json")
+            restored = WorldState.load(checkpoint)
+
+        self.assertEqual(restored.to_dict(), world.to_dict())
+
     def test_socially_motivated_residents_interact_autonomously(self):
         world = build_default_world()
         world.absolute_minute = 510

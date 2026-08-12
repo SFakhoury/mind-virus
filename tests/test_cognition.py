@@ -62,6 +62,26 @@ class CognitionTests(unittest.TestCase):
 
         self.assertEqual((self.alice.location_id, self.alice.activity), before)
 
+    def test_daily_goal_overrides_workday_schedule(self):
+        self.alice.daily_goal = "investigate bakery report"
+        self.alice.goal_destination_id = "bakery"
+        self.alice.goal_activity = "investigating"
+        self.alice.goal_reason = "a memory identifies the bakery"
+
+        decision = choose_resident_action(self.alice, 480)
+
+        self.assertEqual(decision.source, "goal")
+        self.assertEqual(decision.destination_id, "bakery")
+
+    def test_daily_goal_does_not_override_night_schedule(self):
+        self.alice.daily_goal = "investigate bakery report"
+        self.alice.goal_destination_id = "bakery"
+        self.alice.goal_activity = "investigating"
+
+        decision = choose_resident_action(self.alice, 60)
+
+        self.assertEqual(decision.source, "schedule")
+
     def test_rejects_invalid_minute(self):
         with self.assertRaises(ValueError):
             choose_resident_action(self.alice, 1440)

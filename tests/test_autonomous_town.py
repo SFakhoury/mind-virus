@@ -113,6 +113,18 @@ class AutonomousTownTests(unittest.TestCase):
 
         self.assertGreaterEqual(len(state["autonomous_reflections"]), 1)
 
+    def test_daily_plans_are_created_and_exposed(self):
+        self.town.tick()
+
+        state = self.town.browser_state()
+
+        self.assertEqual(len(self.town.daily_plans), 4)
+        self.assertEqual(len(state["daily_plans"]), 4)
+        self.assertEqual(
+            state["residents"]["Alice"]["daily_goal"],
+            self.world.residents["Alice"].daily_goal,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

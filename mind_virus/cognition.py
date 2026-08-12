@@ -6,7 +6,7 @@ from typing import Literal
 from mind_virus.world import ResidentState, ScheduleEntry
 
 
-DecisionSource = Literal["schedule", "energy", "hunger", "social"]
+DecisionSource = Literal["schedule", "goal", "energy", "hunger", "social"]
 
 
 @dataclass(frozen=True)
@@ -68,6 +68,19 @@ def choose_resident_action(
             source=source,
             urgency=score,
             reason=reason,
+        )
+
+    if (
+        420 <= minute_of_day < 1020
+        and resident.goal_destination_id is not None
+        and resident.goal_activity is not None
+    ):
+        return ResidentDecision(
+            activity=resident.goal_activity,
+            destination_id=resident.goal_destination_id,
+            source="goal",
+            urgency=0.25,
+            reason=resident.goal_reason or resident.daily_goal,
         )
 
     return _scheduled_decision(scheduled)

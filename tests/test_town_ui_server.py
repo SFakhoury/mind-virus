@@ -38,6 +38,8 @@ class TownUIServerTests(unittest.TestCase):
         self.assertIn("resident.activity", script)
         self.assertIn("resident.decision_source", script)
         self.assertIn("resident.decision_reason", script)
+        self.assertIn("resident.daily_goal", script)
+        self.assertIn("Daily goal:", script)
         self.assertIn("world.autonomous_conversations", script)
         self.assertIn("seenAutonomousConversations", script)
         self.assertIn("seenAutonomousReflections", script)

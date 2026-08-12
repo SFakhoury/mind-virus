@@ -7,6 +7,7 @@ from mind_virus.conversation_planning import plan_grounded_conversation
 from mind_virus.memory_context import ConversationContext
 from mind_virus.reflection import reflect_on_memories
 from mind_virus.topic_selection import select_conversation_topic
+from mind_virus.planning import DailyPlan, create_daily_plan
 from mind_virus.world import WorldState, build_default_world
 
 
@@ -56,11 +57,35 @@ class AutonomousTown:
             )
         self.conversations: list[AutonomousConversation] = []
         self.reflections: list[AutonomousReflection] = []
+        self.daily_plans: list[DailyPlan] = []
         self._event_cursor = 0
 
     def tick(self, minutes: int = 1) -> list[AutonomousConversation]:
-        self.world.tick(minutes)
+        if minutes < 1:
+            raise ValueError("Tick duration must be at least one minute.")
+        for _ in range(minutes):
+            self._ensure_daily_plans()
+            self.world.tick()
         return self.process_new_interactions()
+
+    def _ensure_daily_plans(self) -> None:
+        for name, resident in self.world.residents.items():
+            if resident.daily_goal_day == self.world.day:
+                continue
+            plan = create_daily_plan(
+                self.agents[name],
+                resident,
+                self.world.locations,
+                self.world.day,
+            )
+            resident.daily_goal_day = plan.day
+            resident.daily_goal = plan.goal
+            resident.goal_destination_id = plan.destination_id
+            resident.goal_activity = plan.activity
+            resident.goal_source = plan.source
+            resident.goal_reason = plan.reason
+            resident.goal_memory_ids = plan.source_memory_ids
+            self.daily_plans.append(plan)
 
     def process_new_interactions(self) -> list[AutonomousConversation]:
         """Turn newly recorded world interactions into grounded dialogue."""
@@ -156,6 +181,7 @@ class AutonomousTown:
         state["autonomous_reflections"] = [
             asdict(reflection) for reflection in self.reflections[-20:]
         ]
+        state["daily_plans"] = [asdict(plan) for plan in self.daily_plans[-20:]]
         return state
 
 
