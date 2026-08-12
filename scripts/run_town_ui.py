@@ -8,9 +8,11 @@ import json
 import os
 from pathlib import Path
 import webbrowser
+from threading import Lock
 
 from mind_virus.autonomous_town import AutonomousTown
 from mind_virus.api_auth import APIAuthenticator
+from mind_virus.background_jobs import BackgroundJobQueue
 from mind_virus.decision import OpenAIDecisionMaker, TransmissionDecision
 from mind_virus.town_session import TownSession
 from mind_virus.production_store import ProductionStore
@@ -116,8 +118,10 @@ def make_handler(
     experience: str = "autonomous-town",
     store: ProductionStore | None = None,
     authenticator: APIAuthenticator | None = None,
+    jobs: BackgroundJobQueue | None = None,
 ):
     broker = LiveStateBroker()
+    mutation_lock = Lock()
 
     def snapshot():
         usage = usage_summary(decision_maker, dialogue_maker)
@@ -149,6 +153,11 @@ def make_handler(
             self.wfile.write(body)
 
         def do_GET(self):
+            if self.path.startswith("/api/v1/jobs/"):
+                job_id = self.path.rsplit("/", 1)[-1]
+                status = jobs.status(job_id) if jobs else None
+                self.send_json(status or {"error": "Job not found."}, 200 if status else 404)
+                return
             if self.path == "/api/v1/events":
                 self.send_response(200)
                 self.send_header("Content-Type", "text/event-stream")
@@ -191,34 +200,51 @@ def make_handler(
             path = self.path.removeprefix("/api/v1") if self.path.startswith("/api/v1/") else self.path
             if mode == "live-ai" and path in ("/api/chat", "/api/step") and not self.authorized():
                 return
+            if path == "/jobs/step":
+                if jobs is None or not self.authorized():
+                    return
+                try:
+                    job_id = jobs.submit(lambda: self.run_step())
+                except RuntimeError as error:
+                    self.send_json({"error": str(error)}, 503)
+                    return
+                self.send_json({"job_id": job_id, "status": "queued"}, 202)
+                return
             if path == "/api/world/tick":
-                town.tick(5)
-                town.world.save(WORLD_OUTPUT)
-                world = town.browser_state()
-                broker.publish({"state": snapshot(), "world": world})
+                with mutation_lock:
+                    town.tick(5)
+                    town.world.save(WORLD_OUTPUT)
+                    world = town.browser_state()
+                    broker.publish({"state": snapshot(), "world": world})
                 self.send_json(world)
                 return
             if path == "/api/chat":
                 try:
-                    chat = session.chat(dialogue_maker)
+                    with mutation_lock:
+                        chat = session.chat(dialogue_maker)
+                        state = snapshot()
+                        broker.publish({"state": state, "world": town.browser_state()})
                 except RuntimeError as error:
                     self.send_json({"error": str(error)}, 409)
                     return
-                state = snapshot()
-                broker.publish({"state": state, "world": town.browser_state()})
                 self.send_json({"chat": chat, "state": state})
                 return
             if path != "/api/step":
                 self.send_json({"error": "Not found."}, 404)
                 return
             try:
-                turn = session.step()
+                result = self.run_step()
             except RuntimeError as error:
                 self.send_json({"error": str(error)}, 409)
                 return
-            state = snapshot()
-            broker.publish({"state": state, "world": town.browser_state()})
-            self.send_json({"turn": asdict(turn), "state": state})
+            self.send_json(result)
+
+        def run_step(self):
+            with mutation_lock:
+                turn = session.step()
+                state = snapshot()
+                broker.publish({"state": state, "world": town.browser_state()})
+                return {"turn": asdict(turn), "state": state}
 
     return partial(TownHandler, directory=str(UI_DIRECTORY))
 
@@ -268,6 +294,7 @@ def main() -> None:
     town = AutonomousTown()
     store = ProductionStore(DATABASE_OUTPUT)
     authenticator = APIAuthenticator.from_environment(required=args.production)
+    jobs = BackgroundJobQueue()
     server = ThreadingHTTPServer(
         (HOST, PORT),
         make_handler(
@@ -279,6 +306,7 @@ def main() -> None:
             experience,
             store,
             authenticator,
+            jobs,
         ),
     )
     url = f"http://{HOST}:{PORT}"
@@ -295,6 +323,7 @@ def main() -> None:
         print("\nTown server stopped.")
     finally:
         server.server_close()
+        jobs.shutdown()
 
 
 if __name__ == "__main__":

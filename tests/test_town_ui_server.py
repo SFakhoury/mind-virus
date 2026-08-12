@@ -64,6 +64,9 @@ class TownUIServerTests(unittest.TestCase):
         self.assertIn("broker.publish", source)
         self.assertIn("X-Mind-Virus-Token", source)
         self.assertIn("APIAuthenticator.from_environment", source)
+        self.assertIn('"/api/v1/jobs/"', source)
+        self.assertIn('path == "/jobs/step"', source)
+        self.assertIn("mutation_lock", source)
 
     def test_autonomous_mode_hides_research_only_panels(self):
         markup = (UI_DIRECTORY / "index.html").read_text(encoding="utf-8")

@@ -124,6 +124,9 @@ the versioned API. Connected browsers now receive server-sent state events,
 while the existing world tick request remains as a compatibility fallback.
 Production mode now requires a separate application access token for paid
 mutation routes; the OpenAI provider key remains isolated on the server.
+A bounded background queue now supports observable asynchronous work with
+retries, while mutation locks prevent concurrent requests from racing shared
+town and agent state.
 
 - Versioned backend API and persistent database
 - Browser client with live state synchronization
