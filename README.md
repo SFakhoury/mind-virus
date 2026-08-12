@@ -4,6 +4,10 @@
 
 The project is inspired by the architecture introduced in Stanford's *Generative Agents: Interactive Simulacra of Human Behavior*.
 
+![Mind-Virus interactive research town](docs/figures/town-ui.png)
+
+*The interactive town prototype visualizes residents, conversations, claim exposure, belief, propagation generation, and simulated time.*
+
 ## Research Question
 
 > **Does skepticism measurably slow or reduce the spread of a false belief through a society of memory-driven AI agents?**
