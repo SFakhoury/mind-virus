@@ -1,6 +1,6 @@
 ﻿import unittest
 
-from claim import Claim
+from mind_virus.claim import Claim
 
 
 class ClaimTests(unittest.TestCase):
@@ -114,3 +114,4 @@ class ClaimTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -131,3 +131,4 @@ class MemoryStream:
     def __len__(self) -> int:
         """Return the number of stored memories."""
         return len(self._memories)
+

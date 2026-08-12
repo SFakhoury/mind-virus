@@ -1,7 +1,7 @@
 ﻿import unittest
 
-from agent import Agent
-from ai_interpreter import OpenAIInterpreter
+from mind_virus.agent import Agent
+from mind_virus.ai_interpreter import OpenAIInterpreter
 
 
 class FakeResponse:
@@ -132,3 +132,4 @@ class OpenAIInterpreterTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

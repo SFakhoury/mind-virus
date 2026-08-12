@@ -1,6 +1,6 @@
 ﻿from dataclasses import dataclass
 
-from claim import Claim
+from .claim import Claim
 
 
 @dataclass(frozen=True)
@@ -53,3 +53,4 @@ class Belief:
             confidence=belief_confidence,
             generation=claim.generation,
         )
+

@@ -1,7 +1,7 @@
 ﻿import unittest
 
-from agent import Agent
-from conversation import Conversation
+from mind_virus.agent import Agent
+from mind_virus.conversation import Conversation
 
 
 class ConversationTests(unittest.TestCase):
@@ -151,3 +151,4 @@ class ConversationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

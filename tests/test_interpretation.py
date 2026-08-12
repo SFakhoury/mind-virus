@@ -1,6 +1,6 @@
 ﻿import unittest
 
-from agent import Agent
+from mind_virus.agent import Agent
 
 
 class ListenerInterpretationTests(unittest.TestCase):
@@ -91,3 +91,4 @@ class ListenerInterpretationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

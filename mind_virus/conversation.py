@@ -1,7 +1,7 @@
 ﻿from collections.abc import Callable
 
-from agent import Agent
-from memory import Memory
+from .agent import Agent
+from .memory import Memory
 
 
 Interpreter = Callable[[Agent, Agent, str], str]
@@ -46,3 +46,4 @@ class Conversation:
             importance=importance,
             interpretation=interpretation,
         )
+

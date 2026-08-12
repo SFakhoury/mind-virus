@@ -1,8 +1,8 @@
 ﻿from dataclasses import dataclass, field
 
-from belief import Belief
-from claim import Claim
-from memory import Memory, MemorySource, MemoryStream
+from .belief import Belief
+from .claim import Claim
+from .memory import Memory, MemorySource, MemoryStream
 
 
 @dataclass
@@ -169,3 +169,4 @@ class Agent:
             topic_id=belief.topic_id,
             parent_id=belief.claim_id,
         )
+

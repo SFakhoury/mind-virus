@@ -1,5 +1,5 @@
-﻿from agent import Agent
-from claim import Claim
+﻿from mind_virus.agent import Agent
+from mind_virus.claim import Claim
 
 
 def main() -> None:
@@ -53,3 +53,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

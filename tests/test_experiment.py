@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from experiment import (
+from mind_virus.experiment import (
     run_comparison,
     run_trial,
     summarize,
@@ -131,3 +131,4 @@ class ExperimentTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -3,7 +3,7 @@
 import os
 from typing import Any
 
-from agent import Agent
+from .agent import Agent
 
 
 class OpenAIInterpreter:
@@ -79,3 +79,4 @@ class OpenAIInterpreter:
             )
 
         return interpretation
+

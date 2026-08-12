@@ -1,5 +1,5 @@
-﻿from agent import Agent
-from conversation import Conversation
+﻿from mind_virus.agent import Agent
+from mind_virus.conversation import Conversation
 
 
 def personality_interpreter(
@@ -67,3 +67,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

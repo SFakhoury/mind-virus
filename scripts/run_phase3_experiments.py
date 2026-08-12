@@ -1,4 +1,4 @@
-﻿from experiment import (
+﻿from mind_virus.experiment import (
     run_comparison,
     summarize,
     write_results,
@@ -48,3 +48,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

@@ -6,8 +6,8 @@ from pathlib import Path
 import random
 from statistics import mean
 
-from agent import Agent
-from claim import Claim
+from .agent import Agent
+from .claim import Claim
 
 
 @dataclass(frozen=True)
@@ -257,3 +257,4 @@ def write_results(
             )
 
     return path
+

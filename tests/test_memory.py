@@ -1,7 +1,7 @@
 ﻿import unittest
 from datetime import datetime, timedelta, timezone
 
-from memory import Memory, MemoryStream
+from mind_virus.memory import Memory, MemoryStream
 
 
 class MemoryTests(unittest.TestCase):
@@ -132,3 +132,4 @@ class MemoryStreamTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

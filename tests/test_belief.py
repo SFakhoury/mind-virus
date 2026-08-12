@@ -1,8 +1,8 @@
 ﻿import unittest
 
-from agent import Agent
-from belief import Belief
-from claim import Claim
+from mind_virus.agent import Agent
+from mind_virus.belief import Belief
+from mind_virus.claim import Claim
 
 
 class BeliefTests(unittest.TestCase):
@@ -179,3 +179,4 @@ class PropagationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

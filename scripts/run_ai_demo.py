@@ -1,8 +1,8 @@
 ﻿import os
 
-from agent import Agent
-from ai_interpreter import OpenAIInterpreter
-from conversation import Conversation
+from mind_virus.agent import Agent
+from mind_virus.ai_interpreter import OpenAIInterpreter
+from mind_virus.conversation import Conversation
 
 
 def main() -> None:
@@ -54,3 +54,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

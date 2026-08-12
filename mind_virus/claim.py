@@ -69,3 +69,4 @@ class Claim:
             topic_id=self.topic_id,
             parent_id=self.id,
         )
+

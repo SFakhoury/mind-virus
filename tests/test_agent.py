@@ -1,6 +1,6 @@
 ﻿import unittest
 
-from agent import Agent
+from mind_virus.agent import Agent
 
 
 class AgentTests(unittest.TestCase):
@@ -92,3 +92,4 @@ class AgentTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
