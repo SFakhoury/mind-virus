@@ -21,6 +21,7 @@ class Memory:
     created_at: datetime = field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
+    related_memory_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if not self.content.strip():
@@ -30,6 +31,9 @@ class Memory:
             raise ValueError(
                 "Memory importance must be between 1 and 10."
             )
+
+        if self.id in self.related_memory_ids:
+            raise ValueError("A memory cannot reference itself.")
 
 
 class MemoryStream:

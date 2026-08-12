@@ -37,12 +37,14 @@ class Agent:
         content: str,
         importance: int,
         source: MemorySource,
+        related_memory_ids: tuple[str, ...] = (),
     ) -> Memory:
         """Create and store a new private memory."""
         memory = Memory(
             content=content,
             importance=importance,
             source=source,
+            related_memory_ids=related_memory_ids,
         )
         self.memories.add(memory)
         return memory
