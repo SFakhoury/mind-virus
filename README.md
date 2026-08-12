@@ -42,9 +42,25 @@ This distinction separates information exposure from actual belief formation.
 
 ## Project Status
 
-**Current phase: Phase 6 complete - Statistical Analysis and Research Reporting**
+**Current phase: Phase 7 complete - Interactive Visual Town Prototype**
 
-The core agent loop now supports private memories, scored retrieval, dialogue, and listener-specific interpretation.
+The research pipeline and visual prototype are complete. The core system supports private memories, scored retrieval, model-backed interpretation, controlled experiments, confirmatory statistical analysis, and an animated browser-based town.
+
+## Launch the Visual Town
+
+```powershell
+python -m scripts.run_town_ui
+```
+
+The browser opens at `http://127.0.0.1:8000`. Keep the terminal open while the town is running and press `Ctrl+C` to stop it.
+
+The current town is a scripted UI prototype that demonstrates movement, simulated conversations, exposure, repetition, belief, and time progression. The research experiments use the model-backed Python pipeline; the prototype's browser dialogue is not generated live by an LLM.
+
+## Run the Test Suite
+
+```powershell
+python -m unittest discover -s tests -v
+```
 
 ## Documentation
 
@@ -56,14 +72,15 @@ The core agent loop now supports private memories, scored retrieval, dialogue, a
 
 - [Controlled Experiment Plan](docs/controlled-experiment-plan.md)
 
-## Planned Deliverables
+## Completed Deliverables
 
 - Working memory-driven multi-agent simulation
 - Reproducible misinformation propagation experiments
 - Multi-run experimental logs
 - Controlled skeptical vs. non-skeptical comparison
 - Quantitative visualizations
-- Short research write-up
+- Confirmatory research report
+- Interactive visual town prototype
 
 ## Development Philosophy
 
