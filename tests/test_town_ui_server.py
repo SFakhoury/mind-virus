@@ -18,6 +18,12 @@ class TownUIServerTests(unittest.TestCase):
         self.assertTrue((UI_DIRECTORY / "styles.css").is_file())
         self.assertTrue((UI_DIRECTORY / "town.js").is_file())
 
+    def test_town_supports_continuing_conversations_and_days(self):
+        script = (UI_DIRECTORY / "town.js").read_text(encoding="utf-8")
+        self.assertIn("followUps", script)
+        self.assertIn("elapsedHours", script)
+        self.assertIn("DAY ${String(day)", script)
+
 
 if __name__ == "__main__":
     unittest.main()
