@@ -46,7 +46,7 @@ This distinction separates information exposure from actual belief formation.
 
 ## Project Status
 
-**Current phase: Phase 10 complete - Persistent Live AI Sessions**
+**Current phase: Phase 11 in progress - Generalized Experimental Framework**
 
 The research pipeline and visual prototype are complete. The core system supports private memories, scored retrieval, model-backed interpretation, controlled experiments, confirmatory statistical analysis, and an animated browser-based town.
 

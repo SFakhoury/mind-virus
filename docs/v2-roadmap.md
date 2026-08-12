@@ -37,6 +37,10 @@ from different internal states without hard-coded conversation chains.
 
 ## Phase 10: Persistent Live AI Sessions
 
+**Status: complete.** Persistent sessions now checkpoint and resume the world,
+agent cognition, conversations, event cursor, API budgets, and rejected model
+outputs without losing or duplicating processed encounters.
+
 - Resumable multi-day model-backed town runs
 - Per-agent and per-session budgets, rate limits, and failure recovery
 - Structured action and dialogue schemas
@@ -48,6 +52,10 @@ Completion requires an interrupted live run to resume without losing or
 duplicating events, plus an auditable cost and decision record.
 
 ## Phase 11: Generalized Experimental Framework
+
+**Status: in progress.** A validated, fingerprinted experiment specification
+now defines networks, town sizes, claims, evidence conditions, interventions,
+intensities, outcomes, dataset stage, trial counts, and random seed.
 
 - Multiple social-network structures and town sizes
 - Multiple misinformation topics and evidence conditions
