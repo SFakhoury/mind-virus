@@ -92,6 +92,9 @@ coverage as distinct research outcomes.
 Raw model outputs can now be randomized into blinded review packets with a
 separate provenance key, dual-reviewer judgments, Cohen's kappa agreement,
 and explicit disagreement lists for independent adjudication.
+Robustness synthesis now reports direction consistency, supporting,
+contradicting, and inconclusive cells, and only preserves a conclusion when it
+meets its prespecified consistency threshold without significant reversals.
 
 - Multiple model families or versions
 - Prompt and temperature sensitivity analysis
