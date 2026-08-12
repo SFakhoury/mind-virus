@@ -80,6 +80,10 @@ implemented as one-off scripts.
 
 ## Phase 12: Robustness and Research Validation
 
+**Status: in progress.** Reproducible robustness manifests now cross model,
+prompt, temperature, and repetition settings in randomized execution order,
+with every cell tied to the frozen experiment specification.
+
 - Multiple model families or versions
 - Prompt and temperature sensitivity analysis
 - Larger samples based on power and variance estimates

@@ -46,7 +46,7 @@ This distinction separates information exposure from actual belief formation.
 
 ## Project Status
 
-**Current phase: Phase 11 complete - Generalized Experimental Framework**
+**Current phase: Phase 12 in progress - Robustness and Research Validation**
 
 The research pipeline and visual prototype are complete. The core system supports private memories, scored retrieval, model-backed interpretation, controlled experiments, confirmatory statistical analysis, and an animated browser-based town.
 
