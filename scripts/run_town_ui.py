@@ -15,6 +15,7 @@ from mind_virus.town_dialogue import (
     OpenAITownDialogueMaker,
     TownDialogue,
 )
+from mind_virus.world import build_default_world
 
 
 HOST = "127.0.0.1"
@@ -24,6 +25,11 @@ SESSION_OUTPUT = (
     Path(__file__).resolve().parent.parent
     / "results"
     / "town_session_latest.json"
+)
+WORLD_OUTPUT = (
+    Path(__file__).resolve().parent.parent
+    / "results"
+    / "town_world_latest.json"
 )
 
 
@@ -98,6 +104,7 @@ def usage_summary(decision_maker, dialogue_maker):
 
 def make_handler(
     session: TownSession,
+    world,
     mode: str,
     decision_maker,
     dialogue_maker,
@@ -117,12 +124,20 @@ def make_handler(
             self.wfile.write(body)
 
         def do_GET(self):
+            if self.path == "/api/world":
+                self.send_json(world.browser_state())
+                return
             if self.path == "/api/state":
                 self.send_json(snapshot())
                 return
             super().do_GET()
 
         def do_POST(self):
+            if self.path == "/api/world/tick":
+                world.tick(5)
+                world.save(WORLD_OUTPUT)
+                self.send_json(world.browser_state())
+                return
             if self.path == "/api/chat":
                 try:
                     chat = session.chat(dialogue_maker)
@@ -171,10 +186,12 @@ def main() -> None:
         dialogue_maker = simulation_dialogue
 
     session = TownSession(decision_maker)
+    world = build_default_world()
     server = ThreadingHTTPServer(
         (HOST, PORT),
         make_handler(
             session,
+            world,
             mode,
             decision_maker,
             dialogue_maker,

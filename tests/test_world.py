@@ -165,6 +165,32 @@ class WorldTests(unittest.TestCase):
 
         self.assertEqual(restored.to_dict(), world.to_dict())
 
+    def test_browser_state_contains_authoritative_clock_and_activity(self):
+        world = build_default_world()
+        state = world.browser_state()
+
+        self.assertEqual(state["clock"], "DAY 01 · 08:00")
+        self.assertEqual(state["residents"]["Alice"]["x"], 0.18)
+        self.assertIn("activity", state["residents"]["Alice"])
+
+    def test_travel_position_is_interpolated_by_python(self):
+        world = build_default_world()
+        world.tick(5)
+        alice = world.browser_state()["residents"]["Alice"]
+
+        self.assertEqual(alice["destination_id"], "town_hall")
+        self.assertAlmostEqual(alice["x"], 0.18)
+        self.assertAlmostEqual(alice["y"], 0.77)
+
+    def test_browser_state_survives_checkpoint(self):
+        world = build_default_world()
+        world.tick(25)
+        with TemporaryDirectory() as directory:
+            checkpoint = world.save(Path(directory) / "world.json")
+            restored = WorldState.load(checkpoint)
+
+        self.assertEqual(restored.browser_state(), world.browser_state())
+
 
 if __name__ == "__main__":
     unittest.main()

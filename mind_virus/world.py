@@ -95,6 +95,7 @@ class ResidentState:
     location_id: str
     schedule: tuple[ScheduleEntry, ...]
     destination_id: str | None = None
+    travel_origin_id: str | None = None
     activity: str = "idle"
     travel_remaining: int = 0
     needs: Needs = field(default_factory=Needs)
@@ -172,6 +173,7 @@ class WorldState:
             if resident.travel_remaining == 0:
                 resident.location_id = resident.destination_id or resident.location_id
                 resident.destination_id = None
+                resident.travel_origin_id = None
                 self._record("arrival", resident)
             return
 
@@ -179,6 +181,7 @@ class WorldState:
         resident.activity = entry.activity
         if entry.location_id == resident.location_id:
             return
+        resident.travel_origin_id = resident.location_id
         resident.destination_id = entry.location_id
         resident.travel_remaining = self.travel_minutes(
             resident.location_id,
@@ -260,6 +263,47 @@ class WorldState:
                 asdict(event) for event in self.scheduled_events
             ],
             "triggered_event_ids": sorted(self.triggered_event_ids),
+        }
+
+    def resident_position(self, resident: ResidentState) -> tuple[float, float]:
+        """Return a resident's current interpolated map position."""
+        if resident.destination_id is None or resident.travel_origin_id is None:
+            location = self.locations[resident.location_id]
+            return location.x, location.y
+        origin = self.locations[resident.travel_origin_id]
+        destination = self.locations[resident.destination_id]
+        total = self.travel_minutes(
+            resident.travel_origin_id,
+            resident.destination_id,
+        )
+        progress = 1.0 - resident.travel_remaining / total
+        return (
+            origin.x + (destination.x - origin.x) * progress,
+            origin.y + (destination.y - origin.y) * progress,
+        )
+
+    def browser_state(self) -> dict[str, object]:
+        """Return the authoritative state required by the visual client."""
+        hour, minute = divmod(self.minute_of_day, 60)
+        return {
+            "absolute_minute": self.absolute_minute,
+            "day": self.day,
+            "minute_of_day": self.minute_of_day,
+            "clock": f"DAY {self.day:02d} · {hour:02d}:{minute:02d}",
+            "residents": {
+                name: {
+                    "name": resident.name,
+                    "location_id": resident.location_id,
+                    "destination_id": resident.destination_id,
+                    "activity": resident.activity,
+                    "travel_remaining": resident.travel_remaining,
+                    "x": self.resident_position(resident)[0],
+                    "y": self.resident_position(resident)[1],
+                    "needs": asdict(resident.needs),
+                }
+                for name, resident in self.residents.items()
+            },
+            "recent_events": self.event_log[-20:],
         }
 
     def save(self, path: str | Path) -> Path:

@@ -25,13 +25,17 @@ class TownUIServerTests(unittest.TestCase):
         self.assertTrue((UI_DIRECTORY / "styles.css").is_file())
         self.assertTrue((UI_DIRECTORY / "town.js").is_file())
 
-    def test_town_connects_to_python_api_and_advances_days(self):
+    def test_town_connects_to_python_api_and_uses_world_state(self):
         script = (UI_DIRECTORY / "town.js").read_text(encoding="utf-8")
-        self.assertIn("elapsedHours", script)
-        self.assertIn("DAY ${String(day)", script)
+        self.assertNotIn("elapsedHours", script)
+        self.assertIn("clock.textContent=world.clock", script)
         self.assertIn('fetch("/api/state")', script)
         self.assertIn('fetch("/api/step"', script)
         self.assertIn('fetch("/api/chat"', script)
+        self.assertIn('"/api/world/tick"', script)
+        self.assertIn("p.x+=(p.tx-p.x)*.055", script)
+        self.assertIn("p.y+=(p.ty-p.y)*.055", script)
+        self.assertIn("resident.activity", script)
         self.assertIn("LIVE AI MODE", script)
 
     def test_simulation_bob_uses_firsthand_evidence(self):
