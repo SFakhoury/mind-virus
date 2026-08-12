@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from typing import Any
 
 from mind_virus.agent import Agent
 from mind_virus.autonomous_interpretation import interpret_autonomous_message
@@ -37,6 +38,8 @@ class AutonomousConversation:
     listener_confidence: float
     listener_reason: str
     listener_relevant_memory_ids: tuple[str, ...]
+    dialogue_mode: str = "deterministic"
+    communicative_intent: str = "share grounded memory"
 
 
 @dataclass(frozen=True)
@@ -57,9 +60,11 @@ class AutonomousTown:
         self,
         world: WorldState | None = None,
         agents: dict[str, Agent] | None = None,
+        dialogue_maker: Any | None = None,
     ) -> None:
         self.world = world if world is not None else build_default_world()
         self.agents = agents if agents is not None else build_default_agents()
+        self.dialogue_maker = dialogue_maker
         missing = set(self.world.residents) - set(self.agents)
         if missing:
             raise ValueError(
@@ -130,18 +135,28 @@ class AutonomousTown:
                 listener,
                 context,
             )
+            generated_dialogue = (
+                self.dialogue_maker(speaker, listener, plan)
+                if self.dialogue_maker is not None
+                else None
+            )
+            spoken_message = (
+                generated_dialogue.speaker_message
+                if generated_dialogue is not None
+                else plan.proposed_message
+            )
             relationship_trust = self.world.residents[
                 listener.name
             ].relationships.get(speaker.name, 0.5)
             interpretation = interpret_autonomous_message(
                 listener,
                 speaker,
-                plan.proposed_message,
+                spoken_message,
                 supporting_memory_ids=plan.memory_ids,
                 relationship_trust=relationship_trust,
             )
             claim = Claim(
-                content=plan.proposed_message,
+                content=spoken_message,
                 source_agent=speaker.name,
                 confidence=0.8 if plan.memory_ids else 0.3,
             )
@@ -152,14 +167,14 @@ class AutonomousTown:
                     belief_confidence=interpretation.confidence,
                 )
             speaker_memory = speaker.remember(
-                f'I told {listener.name}: "{plan.proposed_message}"',
+                f'I told {listener.name}: "{spoken_message}"',
                 4,
                 "dialogue",
                 related_memory_ids=plan.memory_ids,
             )
             listener_memory = listener.hear(
                 speaker,
-                plan.proposed_message,
+                spoken_message,
                 importance=4,
                 interpretation=interpretation.remembered_message,
                 related_memory_ids=plan.memory_ids,
@@ -174,7 +189,7 @@ class AutonomousTown:
                 topic=plan.topic,
                 topic_source_memory_ids=selected_topic.source_memory_ids,
                 topic_reason=selected_topic.reason,
-                message=plan.proposed_message,
+                message=spoken_message,
                 retrieval_query=plan.retrieval_query,
                 supporting_memory_ids=plan.memory_ids,
                 speaker_memory_id=speaker_memory.id,
@@ -187,6 +202,12 @@ class AutonomousTown:
                 listener_confidence=interpretation.confidence,
                 listener_reason=interpretation.reason,
                 listener_relevant_memory_ids=interpretation.relevant_memory_ids,
+                dialogue_mode=("live-ai" if generated_dialogue is not None else "deterministic"),
+                communicative_intent=(
+                    generated_dialogue.communicative_intent
+                    if generated_dialogue is not None
+                    else "share grounded memory"
+                ),
             )
             self.conversations.append(conversation)
             new_conversations.append(conversation)
