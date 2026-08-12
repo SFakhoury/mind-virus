@@ -10,6 +10,7 @@ from pathlib import Path
 import webbrowser
 
 from mind_virus.autonomous_town import AutonomousTown
+from mind_virus.api_auth import APIAuthenticator
 from mind_virus.decision import OpenAIDecisionMaker, TransmissionDecision
 from mind_virus.town_session import TownSession
 from mind_virus.production_store import ProductionStore
@@ -114,6 +115,7 @@ def make_handler(
     dialogue_maker,
     experience: str = "autonomous-town",
     store: ProductionStore | None = None,
+    authenticator: APIAuthenticator | None = None,
 ):
     broker = LiveStateBroker()
 
@@ -131,6 +133,13 @@ def make_handler(
         return payload
 
     class TownHandler(SimpleHTTPRequestHandler):
+        def authorized(self) -> bool:
+            auth = authenticator or APIAuthenticator()
+            if auth.authorize(self.headers.get("X-Mind-Virus-Token")):
+                return True
+            self.send_json({"error": "Authentication required."}, 401)
+            return False
+
         def send_json(self, payload, status=200):
             body = json.dumps(payload).encode("utf-8")
             self.send_response(status)
@@ -180,6 +189,8 @@ def make_handler(
 
         def do_POST(self):
             path = self.path.removeprefix("/api/v1") if self.path.startswith("/api/v1/") else self.path
+            if mode == "live-ai" and path in ("/api/chat", "/api/step") and not self.authorized():
+                return
             if path == "/api/world/tick":
                 town.tick(5)
                 town.world.save(WORLD_OUTPUT)
@@ -224,6 +235,11 @@ def parse_args():
         action="store_true",
         help="Run the legacy controlled rumor-propagation UI sequence.",
     )
+    parser.add_argument(
+        "--production",
+        action="store_true",
+        help="Require authenticated paid routes and production settings.",
+    )
     return parser.parse_args()
 
 
@@ -251,6 +267,7 @@ def main() -> None:
     session = TownSession(decision_maker)
     town = AutonomousTown()
     store = ProductionStore(DATABASE_OUTPUT)
+    authenticator = APIAuthenticator.from_environment(required=args.production)
     server = ThreadingHTTPServer(
         (HOST, PORT),
         make_handler(
@@ -261,6 +278,7 @@ def main() -> None:
             dialogue_maker,
             experience,
             store,
+            authenticator,
         ),
     )
     url = f"http://{HOST}:{PORT}"
