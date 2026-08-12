@@ -5,6 +5,7 @@ import unittest
 
 from mind_virus.world import (
     Location,
+    Needs,
     Route,
     WorldState,
     build_default_world,
@@ -90,6 +91,79 @@ class WorldTests(unittest.TestCase):
     def test_replay_rejects_time_before_world_start(self):
         with self.assertRaises(ValueError):
             replay_default_world(479)
+
+    def test_needs_reject_values_outside_unit_interval(self):
+        with self.assertRaises(ValueError):
+            Needs(energy=1.1)
+
+    def test_needs_change_deterministically_with_time(self):
+        world = build_default_world()
+        initial = world.residents["Dana"].needs
+        initial_values = (initial.energy, initial.hunger, initial.social)
+        world.tick(20)
+        changed = world.residents["Dana"].needs
+
+        self.assertNotEqual(
+            (changed.energy, changed.hunger, changed.social),
+            initial_values,
+        )
+        self.assertGreater(changed.hunger, initial_values[1])
+        self.assertGreater(changed.social, initial_values[2])
+
+    def test_interaction_requires_shared_location(self):
+        world = build_default_world()
+        with self.assertRaises(ValueError):
+            world.record_interaction("Alice", "Bob")
+
+    def test_interaction_updates_both_relationships(self):
+        world = build_default_world()
+        world.residents["Alice"].location_id = "town_hall"
+        world.residents["Dana"].location_id = "town_hall"
+        world.residents["Alice"].needs.social = 0.8
+        world.residents["Dana"].needs.social = 0.7
+
+        world.record_interaction("Alice", "Dana")
+
+        self.assertEqual(
+            world.residents["Alice"].relationships["Dana"],
+            0.52,
+        )
+        self.assertEqual(
+            world.residents["Dana"].relationships["Alice"],
+            0.52,
+        )
+        self.assertAlmostEqual(world.residents["Alice"].needs.social, 0.65)
+        self.assertAlmostEqual(world.residents["Dana"].needs.social, 0.55)
+        self.assertEqual(len(world.event_log), 1)
+
+    def test_relationship_strength_is_clamped(self):
+        world = build_default_world()
+        alice = world.residents["Alice"]
+        dana = world.residents["Dana"]
+        alice.location_id = dana.location_id = "town_hall"
+        alice.relationships["Dana"] = 0.99
+        dana.relationships["Alice"] = 0.99
+
+        world.record_interaction(
+            "Alice",
+            "Dana",
+            relationship_delta=0.5,
+        )
+
+        self.assertEqual(alice.relationships["Dana"], 1.0)
+        self.assertEqual(dana.relationships["Alice"], 1.0)
+
+    def test_needs_and_relationships_survive_checkpoint(self):
+        world = build_default_world()
+        world.residents["Alice"].location_id = "town_hall"
+        world.residents["Dana"].location_id = "town_hall"
+        world.tick(10)
+        world.record_interaction("Alice", "Dana")
+        with TemporaryDirectory() as directory:
+            checkpoint = world.save(Path(directory) / "world.json")
+            restored = WorldState.load(checkpoint)
+
+        self.assertEqual(restored.to_dict(), world.to_dict())
 
 
 if __name__ == "__main__":

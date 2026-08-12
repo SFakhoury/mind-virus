@@ -46,6 +46,33 @@ class ScheduleEntry:
 
 
 @dataclass
+class Needs:
+    energy: float = 1.0
+    hunger: float = 0.0
+    social: float = 0.0
+
+    def __post_init__(self) -> None:
+        for name, value in asdict(self).items():
+            if not 0.0 <= value <= 1.0:
+                raise ValueError(f"{name} need value must be between 0 and 1.")
+
+    def advance(self, activity: str) -> None:
+        """Update needs for one simulated minute."""
+        resting = activity in {"sleeping", "resting"}
+        eating = activity == "eating"
+        socializing = activity in {"socializing", "conversation"}
+        self.energy = _clamp(
+            self.energy + (0.002 if resting else -0.0006)
+        )
+        self.hunger = _clamp(
+            self.hunger + (-0.004 if eating else 0.0008)
+        )
+        self.social = _clamp(
+            self.social + (-0.004 if socializing else 0.0005)
+        )
+
+
+@dataclass
 class ResidentState:
     name: str
     location_id: str
@@ -53,6 +80,9 @@ class ResidentState:
     destination_id: str | None = None
     activity: str = "idle"
     travel_remaining: int = 0
+    needs: Needs = field(default_factory=Needs)
+    relationships: dict[str, float] = field(default_factory=dict)
+    interaction_history: list[dict[str, object]] = field(default_factory=list)
 
     def next_schedule_entry(self, minute_of_day: int) -> ScheduleEntry:
         eligible = [
@@ -97,6 +127,7 @@ class WorldState:
                 self._advance_resident(resident)
 
     def _advance_resident(self, resident: ResidentState) -> None:
+        resident.needs.advance(resident.activity)
         if resident.travel_remaining > 0:
             resident.travel_remaining -= 1
             if resident.travel_remaining == 0:
@@ -115,6 +146,50 @@ class WorldState:
             entry.location_id,
         )
         self._record("departure", resident)
+
+    def record_interaction(
+        self,
+        first_name: str,
+        second_name: str,
+        *,
+        kind: str = "conversation",
+        relationship_delta: float = 0.02,
+    ) -> None:
+        """Record a symmetric social interaction between co-located residents."""
+        if first_name == second_name:
+            raise ValueError("A resident cannot interact with themselves.")
+        first = self.residents[first_name]
+        second = self.residents[second_name]
+        if first.location_id != second.location_id:
+            raise ValueError("Residents must share a location to interact.")
+        if not kind.strip():
+            raise ValueError("Interaction kind cannot be empty.")
+
+        for resident, other in ((first, second), (second, first)):
+            current = resident.relationships.get(other.name, 0.5)
+            resident.relationships[other.name] = _clamp(
+                current + relationship_delta
+            )
+            resident.needs.social = _clamp(resident.needs.social - 0.15)
+            resident.interaction_history.append(
+                {
+                    "minute": self.absolute_minute,
+                    "day": self.day,
+                    "other": other.name,
+                    "kind": kind,
+                    "relationship_delta": relationship_delta,
+                }
+            )
+        self.event_log.append(
+            {
+                "minute": self.absolute_minute,
+                "day": self.day,
+                "type": "interaction",
+                "residents": [first_name, second_name],
+                "location": first.location_id,
+                "kind": kind,
+            }
+        )
 
     def _record(self, event_type: str, resident: ResidentState) -> None:
         self.event_log.append(
@@ -175,6 +250,9 @@ class WorldState:
                 ScheduleEntry(**entry)
                 for entry in resident_data["schedule"]
             )
+            resident_data["needs"] = Needs(
+                **resident_data.get("needs", {})
+            )
             residents[key] = ResidentState(**resident_data)
 
         return cls(
@@ -201,6 +279,10 @@ def replay_default_world(absolute_minute: int) -> WorldState:
         raise ValueError("Replay target cannot precede the world start.")
     world.tick(absolute_minute - world.absolute_minute)
     return world
+
+
+def _clamp(value: float) -> float:
+    return min(1.0, max(0.0, value))
 
 
 def build_default_world() -> WorldState:
