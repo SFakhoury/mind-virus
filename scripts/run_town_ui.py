@@ -13,6 +13,7 @@ from mind_virus.autonomous_town import AutonomousTown
 from mind_virus.decision import OpenAIDecisionMaker, TransmissionDecision
 from mind_virus.town_session import TownSession
 from mind_virus.production_store import ProductionStore
+from mind_virus.live_sync import LiveStateBroker
 from mind_virus.town_dialogue import (
     OpenAITownDialogueMaker,
     TownDialogue,
@@ -114,6 +115,8 @@ def make_handler(
     experience: str = "autonomous-town",
     store: ProductionStore | None = None,
 ):
+    broker = LiveStateBroker()
+
     def snapshot():
         usage = usage_summary(decision_maker, dialogue_maker)
         session.save(SESSION_OUTPUT, mode=mode, usage=usage)
@@ -137,6 +140,22 @@ def make_handler(
             self.wfile.write(body)
 
         def do_GET(self):
+            if self.path == "/api/v1/events":
+                self.send_response(200)
+                self.send_header("Content-Type", "text/event-stream")
+                self.send_header("Cache-Control", "no-cache")
+                self.send_header("Connection", "keep-alive")
+                self.end_headers()
+                revision = -1
+                try:
+                    while True:
+                        revision, payload = broker.wait_for_update(revision)
+                        event = "data: " + json.dumps(payload or {"heartbeat": True}) + "\n\n"
+                        self.wfile.write(event.encode("utf-8"))
+                        self.wfile.flush()
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+                return
             if self.path == "/api/v1/health":
                 health = store.health() if store else {"status": "ok", "database": "disabled"}
                 self.send_json({"api_version": API_VERSION, **health})
@@ -164,7 +183,9 @@ def make_handler(
             if path == "/api/world/tick":
                 town.tick(5)
                 town.world.save(WORLD_OUTPUT)
-                self.send_json(town.browser_state())
+                world = town.browser_state()
+                broker.publish({"state": snapshot(), "world": world})
+                self.send_json(world)
                 return
             if path == "/api/chat":
                 try:
@@ -172,7 +193,9 @@ def make_handler(
                 except RuntimeError as error:
                     self.send_json({"error": str(error)}, 409)
                     return
-                self.send_json({"chat": chat, "state": snapshot()})
+                state = snapshot()
+                broker.publish({"state": state, "world": town.browser_state()})
+                self.send_json({"chat": chat, "state": state})
                 return
             if path != "/api/step":
                 self.send_json({"error": "Not found."}, 404)
@@ -182,7 +205,9 @@ def make_handler(
             except RuntimeError as error:
                 self.send_json({"error": str(error)}, 409)
                 return
-            self.send_json({"turn": asdict(turn), "state": snapshot()})
+            state = snapshot()
+            broker.publish({"state": state, "world": town.browser_state()})
+            self.send_json({"turn": asdict(turn), "state": state})
 
     return partial(TownHandler, directory=str(UI_DIRECTORY))
 

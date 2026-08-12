@@ -120,7 +120,8 @@ checks and are reported with limitations and null results.
 SQLite-backed durable storage, and a database-aware health check while
 preserving the prototype routes during migration. The server now atomically
 persists its current town snapshot and exposes restart-safe retrieval through
-the versioned API.
+the versioned API. Connected browsers now receive server-sent state events,
+while the existing world tick request remains as a compatibility fallback.
 
 - Versioned backend API and persistent database
 - Browser client with live state synchronization
