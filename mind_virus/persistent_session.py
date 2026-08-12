@@ -93,6 +93,7 @@ class PersistentSession:
             ],
             "reflections": [asdict(item) for item in self.town.reflections],
             "daily_plans": [asdict(item) for item in self.town.daily_plans],
+            "dialogue_rejections": list(self.town.dialogue_rejections),
         }
 
     def save(self) -> Path:
@@ -155,6 +156,7 @@ class PersistentSession:
             DailyPlan(**_tuple_fields(item, "source_memory_ids"))
             for item in data.get("daily_plans", [])
         ]
+        town.dialogue_rejections = list(data.get("dialogue_rejections", []))
         town._event_cursor = int(data.get("event_cursor", 0))
         return cls(
             town=town,

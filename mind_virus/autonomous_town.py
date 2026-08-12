@@ -71,6 +71,7 @@ class AutonomousTown:
                 f"Missing cognitive agents for residents: {sorted(missing)}"
             )
         self.conversations: list[AutonomousConversation] = []
+        self.dialogue_rejections: list[dict[str, object]] = []
         self.reflections: list[AutonomousReflection] = []
         self.daily_plans: list[DailyPlan] = []
         self._event_cursor = 0
@@ -106,9 +107,9 @@ class AutonomousTown:
         """Turn newly recorded world interactions into grounded dialogue."""
         new_conversations: list[AutonomousConversation] = []
         events = self.world.event_log[self._event_cursor:]
-        self._event_cursor = len(self.world.event_log)
         for event in events:
             if event.get("type") != "interaction":
+                self._event_cursor += 1
                 continue
             names = event.get("residents")
             if not isinstance(names, list) or len(names) != 2:
@@ -135,11 +136,16 @@ class AutonomousTown:
                 listener,
                 context,
             )
+            rejection_count = len(getattr(self.dialogue_maker, "rejections", ()))
             generated_dialogue = (
                 self.dialogue_maker(speaker, listener, plan)
                 if self.dialogue_maker is not None
                 else None
             )
+            if self.dialogue_maker is not None:
+                rejection_log = getattr(self.dialogue_maker, "rejection_log", None)
+                if callable(rejection_log):
+                    self.dialogue_rejections.extend(rejection_log()[rejection_count:])
             spoken_message = (
                 generated_dialogue.speaker_message
                 if generated_dialogue is not None
@@ -202,7 +208,11 @@ class AutonomousTown:
                 listener_confidence=interpretation.confidence,
                 listener_reason=interpretation.reason,
                 listener_relevant_memory_ids=interpretation.relevant_memory_ids,
-                dialogue_mode=("live-ai" if generated_dialogue is not None else "deterministic"),
+                dialogue_mode=(
+                    generated_dialogue.delivery_mode
+                    if generated_dialogue is not None
+                    else "deterministic"
+                ),
                 communicative_intent=(
                     generated_dialogue.communicative_intent
                     if generated_dialogue is not None
@@ -211,6 +221,7 @@ class AutonomousTown:
             )
             self.conversations.append(conversation)
             new_conversations.append(conversation)
+            self._event_cursor += 1
             self._reflect_if_ready(speaker, topic)
             self._reflect_if_ready(listener, topic)
         return new_conversations
@@ -241,6 +252,7 @@ class AutonomousTown:
         state["autonomous_reflections"] = [
             asdict(reflection) for reflection in self.reflections[-20:]
         ]
+        state["dialogue_rejections"] = list(self.dialogue_rejections)
         state["daily_plans"] = [asdict(plan) for plan in self.daily_plans[-20:]]
         return state
 

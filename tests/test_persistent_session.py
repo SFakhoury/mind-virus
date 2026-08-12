@@ -78,6 +78,26 @@ class PersistentSessionTests(unittest.TestCase):
 
             self.assertEqual(restored.budget.to_dict(), session.budget.to_dict())
 
+    def test_dialogue_rejection_log_survives_resume(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "session.json"
+            session = PersistentSession.create(path)
+            session.town.dialogue_rejections.append(
+                {
+                    "speaker": "Dana",
+                    "listener": "Alice",
+                    "reasons": ["message introduces unsupported named entities"],
+                }
+            )
+            session.save()
+
+            restored = PersistentSession.load(path)
+
+            self.assertEqual(
+                restored.town.dialogue_rejections,
+                session.town.dialogue_rejections,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

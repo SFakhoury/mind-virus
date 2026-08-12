@@ -46,7 +46,10 @@ class LiveAutonomousDialogueTests(unittest.TestCase):
     def test_returns_structured_dialogue(self):
         result = self.maker(self.speaker, self.listener, self.plan)
 
-        self.assertEqual(result, self.parsed)
+        self.assertEqual(result.speaker_message, self.parsed.speaker_message)
+        self.assertEqual(result.communicative_intent, self.parsed.communicative_intent)
+        self.assertEqual(result.delivery_mode, "live-ai")
+        self.assertEqual(result.attempts, 1)
         self.assertIs(
             self.client.responses.parse.call_args.kwargs["text_format"],
             StructuredAutonomousDialogue,
@@ -97,6 +100,56 @@ class LiveAutonomousDialogueTests(unittest.TestCase):
             town.conversations[0].communicative_intent,
             self.parsed.communicative_intent,
         )
+
+    def test_rejected_invention_is_logged_then_retried(self):
+        invented = StructuredAutonomousDialogue(
+            speaker_message="Mayor Jordan approved 12 grants at Town Hall.",
+            communicative_intent="report approval",
+        )
+        self.client.responses.parse.side_effect = [
+            Mock(output_parsed=invented, usage=FakeUsage()), self.response
+        ]
+
+        result = self.maker(self.speaker, self.listener, self.plan)
+
+        self.assertEqual(result.delivery_mode, "live-ai")
+        self.assertEqual(result.attempts, 2)
+        self.assertEqual(self.budget.session_usage.calls, 2)
+        self.assertEqual(len(self.maker.rejections), 1)
+        self.assertIn(
+            "message introduces unsupported named entities",
+            self.maker.rejection_log()[0]["reasons"],
+        )
+
+    def test_repeated_invention_uses_safe_fallback(self):
+        invented = StructuredAutonomousDialogue(
+            speaker_message="Mayor Jordan approved 12 grants at Town Hall.",
+            communicative_intent="report approval",
+        )
+        self.client.responses.parse.return_value = Mock(
+            output_parsed=invented, usage=FakeUsage()
+        )
+
+        result = self.maker(self.speaker, self.listener, self.plan)
+
+        self.assertEqual(result.speaker_message, self.plan.proposed_message)
+        self.assertEqual(result.delivery_mode, "fallback")
+        self.assertEqual(len(self.maker.rejections), 2)
+
+    def test_town_keeps_failed_encounter_available_for_retry(self):
+        town = AutonomousTown(dialogue_maker=self.maker)
+        self.client.responses.parse.side_effect = RuntimeError("temporary failure")
+
+        with self.assertRaises(RuntimeError):
+            town.tick(20)
+        self.assertEqual(town.conversations, [])
+
+        self.client.responses.parse.side_effect = None
+        self.client.responses.parse.return_value = self.response
+        recovered = town.process_new_interactions()
+
+        self.assertEqual(len(recovered), 1)
+        self.assertEqual(recovered[0].message, self.parsed.speaker_message)
 
 
 if __name__ == "__main__":
