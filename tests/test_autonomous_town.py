@@ -25,6 +25,11 @@ class AutonomousTownTests(unittest.TestCase):
         self.assertEqual(conversations[0].speaker, "Alice")
         self.assertEqual(conversations[0].listener, "Dana")
         self.assertIn(memory.id, conversations[0].supporting_memory_ids)
+        self.assertEqual(
+            conversations[0].topic_source_memory_ids,
+            (memory.id,),
+        )
+        self.assertIn("selected a private memory", conversations[0].topic_reason)
 
     def test_conversation_is_stored_in_listener_memory(self):
         before = len(self.town.agents["Dana"].memories)

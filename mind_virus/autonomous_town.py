@@ -6,6 +6,7 @@ from mind_virus.agent import Agent
 from mind_virus.conversation_planning import plan_grounded_conversation
 from mind_virus.memory_context import ConversationContext
 from mind_virus.reflection import reflect_on_memories
+from mind_virus.topic_selection import select_conversation_topic
 from mind_virus.world import WorldState, build_default_world
 
 
@@ -18,6 +19,8 @@ class AutonomousConversation:
     location_id: str
     location_name: str
     topic: str
+    topic_source_memory_ids: tuple[str, ...]
+    topic_reason: str
     message: str
     retrieval_query: str
     supporting_memory_ids: tuple[str, ...]
@@ -74,7 +77,13 @@ class AutonomousTown:
             listener = self.agents[str(names[1])]
             location_id = str(event["location"])
             location_name = self.world.locations[location_id].name
-            topic = "current town events"
+            selected_topic = select_conversation_topic(
+                speaker,
+                partner_name=listener.name,
+                location_name=location_name,
+                activity="conversation",
+            )
+            topic = selected_topic.label
             context = ConversationContext(
                 partner_name=listener.name,
                 location_name=location_name,
@@ -107,6 +116,8 @@ class AutonomousTown:
                 location_id=location_id,
                 location_name=location_name,
                 topic=plan.topic,
+                topic_source_memory_ids=selected_topic.source_memory_ids,
+                topic_reason=selected_topic.reason,
                 message=plan.proposed_message,
                 retrieval_query=plan.retrieval_query,
                 supporting_memory_ids=plan.memory_ids,
