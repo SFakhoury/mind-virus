@@ -228,6 +228,35 @@ class WorldTests(unittest.TestCase):
         self.assertEqual(alice["decision_source"], "schedule")
         self.assertIn("schedule", alice["decision_reason"])
 
+    def test_socially_motivated_residents_interact_autonomously(self):
+        world = build_default_world()
+        world.absolute_minute = 510
+        alice = world.residents["Alice"]
+        dana = world.residents["Dana"]
+        alice.location_id = dana.location_id = "town_hall"
+        alice.needs.social = 0.8
+
+        world.tick()
+
+        self.assertEqual(alice.activity, "conversation")
+        self.assertEqual(dana.activity, "conversation")
+        self.assertEqual(alice.interaction_history[-1]["other"], "Dana")
+        self.assertEqual(world.event_log[-1]["type"], "interaction")
+
+    def test_autonomous_interaction_has_cooldown(self):
+        world = build_default_world()
+        world.absolute_minute = 510
+        alice = world.residents["Alice"]
+        dana = world.residents["Dana"]
+        alice.location_id = dana.location_id = "town_hall"
+        alice.needs.social = dana.needs.social = 1.0
+        world.tick()
+        first_count = len(alice.interaction_history)
+
+        world.tick(11)
+
+        self.assertEqual(len(alice.interaction_history), first_count)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -104,6 +104,7 @@ class ResidentState:
     interaction_history: list[dict[str, object]] = field(default_factory=list)
     decision_source: str = "schedule"
     decision_reason: str = "following schedule"
+    interaction_until: int = 0
 
     def next_schedule_entry(self, minute_of_day: int) -> ScheduleEntry:
         eligible = [
@@ -177,6 +178,7 @@ class WorldState:
             self._trigger_scheduled_events()
             for resident in self.residents.values():
                 self._advance_resident(resident)
+            self._run_autonomous_interactions()
 
     def _trigger_scheduled_events(self) -> None:
         for event in self.scheduled_events:
@@ -208,6 +210,12 @@ class WorldState:
                 self._record("arrival", resident)
             return
 
+        if resident.interaction_until >= self.absolute_minute:
+            resident.activity = "conversation"
+            resident.decision_source = "social"
+            resident.decision_reason = "continuing a recent conversation"
+            return
+
         from mind_virus.cognition import choose_resident_action
 
         decision = choose_resident_action(resident, self.minute_of_day)
@@ -227,6 +235,47 @@ class WorldState:
             next_stop,
         )
         self._record("departure", resident)
+
+    def _run_autonomous_interactions(self) -> None:
+        from mind_virus.cognition import choose_conversation_partner
+
+        available = [
+            resident for resident in self.residents.values()
+            if resident.travel_remaining == 0
+            and resident.interaction_until < self.absolute_minute
+        ]
+        used: set[str] = set()
+        for resident in sorted(available, key=lambda item: item.name):
+            if resident.name in used:
+                continue
+            candidates = [
+                candidate for candidate in available
+                if candidate.name not in used
+                and not self._recently_interacted(resident, candidate)
+            ]
+            partner = choose_conversation_partner(resident, candidates)
+            if partner is None:
+                continue
+            self.record_interaction(resident.name, partner.name)
+            resident.activity = partner.activity = "conversation"
+            resident.decision_source = partner.decision_source = "social"
+            resident.decision_reason = f"chose to talk with {partner.name}"
+            partner.decision_reason = f"accepted a conversation with {resident.name}"
+            resident.interaction_until = self.absolute_minute + 10
+            partner.interaction_until = self.absolute_minute + 10
+            used.update((resident.name, partner.name))
+
+    def _recently_interacted(
+        self,
+        resident: ResidentState,
+        candidate: ResidentState,
+        cooldown_minutes: int = 60,
+    ) -> bool:
+        return any(
+            item.get("other") == candidate.name
+            and self.absolute_minute - int(item["minute"]) < cooldown_minutes
+            for item in resident.interaction_history
+        )
 
     def record_interaction(
         self,

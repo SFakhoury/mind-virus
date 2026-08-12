@@ -1,6 +1,9 @@
 import unittest
 
-from mind_virus.cognition import choose_resident_action
+from mind_virus.cognition import (
+    choose_conversation_partner,
+    choose_resident_action,
+)
 from mind_virus.world import build_default_world
 
 
@@ -62,6 +65,32 @@ class CognitionTests(unittest.TestCase):
     def test_rejects_invalid_minute(self):
         with self.assertRaises(ValueError):
             choose_resident_action(self.alice, 1440)
+
+    def test_low_social_need_does_not_select_partner(self):
+        dana = self.world.residents["Dana"]
+        dana.location_id = self.alice.location_id
+
+        self.assertIsNone(choose_conversation_partner(self.alice, [dana]))
+
+    def test_high_social_need_selects_colocated_partner(self):
+        dana = self.world.residents["Dana"]
+        dana.location_id = self.alice.location_id
+        self.alice.needs.social = 0.8
+
+        partner = choose_conversation_partner(self.alice, [dana])
+
+        self.assertEqual(partner.name, "Dana")
+
+    def test_partner_selection_prefers_stronger_relationship(self):
+        bob = self.world.residents["Bob"]
+        dana = self.world.residents["Dana"]
+        bob.location_id = dana.location_id = self.alice.location_id
+        self.alice.needs.social = 0.8
+        self.alice.relationships = {"Bob": 0.8, "Dana": 0.6}
+
+        partner = choose_conversation_partner(self.alice, [bob, dana])
+
+        self.assertEqual(partner.name, "Bob")
 
 
 if __name__ == "__main__":

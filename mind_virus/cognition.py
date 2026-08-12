@@ -73,6 +73,32 @@ def choose_resident_action(
     return _scheduled_decision(scheduled)
 
 
+def choose_conversation_partner(
+    resident: ResidentState,
+    candidates: list[ResidentState],
+) -> ResidentState | None:
+    """Select a co-located partner when the resident needs social contact."""
+    if resident.needs.social < 0.75:
+        return None
+    eligible = [
+        candidate
+        for candidate in candidates
+        if candidate.name != resident.name
+        and candidate.location_id == resident.location_id
+        and candidate.travel_remaining == 0
+    ]
+    if not eligible:
+        return None
+    return max(
+        eligible,
+        key=lambda candidate: (
+            resident.relationships.get(candidate.name, 0.5),
+            candidate.needs.social,
+            candidate.name,
+        ),
+    )
+
+
 def _scheduled_decision(entry: ScheduleEntry) -> ResidentDecision:
     return ResidentDecision(
         activity=entry.activity,
