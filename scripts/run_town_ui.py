@@ -20,6 +20,11 @@ from mind_virus.town_dialogue import (
 HOST = "127.0.0.1"
 PORT = 8000
 UI_DIRECTORY = Path(__file__).resolve().parent.parent / "town_ui"
+SESSION_OUTPUT = (
+    Path(__file__).resolve().parent.parent
+    / "results"
+    / "town_session_latest.json"
+)
 
 
 def simulation_decision(listener, speaker, message):
@@ -68,7 +73,40 @@ def simulation_dialogue(speaker, listener):
     )
 
 
-def make_handler(session: TownSession, mode: str, dialogue_maker):
+def usage_summary(decision_maker, dialogue_maker):
+    usages = [
+        getattr(decision_maker, "usage", None),
+        getattr(dialogue_maker, "usage", None),
+    ]
+    calls = sum(usage.calls for usage in usages if usage is not None)
+    input_tokens = sum(
+        usage.input_tokens for usage in usages if usage is not None
+    )
+    output_tokens = sum(
+        usage.output_tokens for usage in usages if usage is not None
+    )
+    estimated_cost = sum(
+        usage.estimated_cost_usd for usage in usages if usage is not None
+    )
+    return {
+        "calls": calls,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "estimated_cost_usd": estimated_cost,
+    }
+
+
+def make_handler(
+    session: TownSession,
+    mode: str,
+    decision_maker,
+    dialogue_maker,
+):
+    def snapshot():
+        usage = usage_summary(decision_maker, dialogue_maker)
+        session.save(SESSION_OUTPUT, mode=mode, usage=usage)
+        return {"mode": mode, "usage": usage, **session.state()}
+
     class TownHandler(SimpleHTTPRequestHandler):
         def send_json(self, payload, status=200):
             body = json.dumps(payload).encode("utf-8")
@@ -80,7 +118,7 @@ def make_handler(session: TownSession, mode: str, dialogue_maker):
 
         def do_GET(self):
             if self.path == "/api/state":
-                self.send_json({"mode": mode, **session.state()})
+                self.send_json(snapshot())
                 return
             super().do_GET()
 
@@ -91,7 +129,7 @@ def make_handler(session: TownSession, mode: str, dialogue_maker):
                 except RuntimeError as error:
                     self.send_json({"error": str(error)}, 409)
                     return
-                self.send_json({"chat": chat, "state": session.state()})
+                self.send_json({"chat": chat, "state": snapshot()})
                 return
             if self.path != "/api/step":
                 self.send_json({"error": "Not found."}, 404)
@@ -101,7 +139,7 @@ def make_handler(session: TownSession, mode: str, dialogue_maker):
             except RuntimeError as error:
                 self.send_json({"error": str(error)}, 409)
                 return
-            self.send_json({"turn": asdict(turn), "state": session.state()})
+            self.send_json({"turn": asdict(turn), "state": snapshot()})
 
     return partial(TownHandler, directory=str(UI_DIRECTORY))
 
@@ -135,7 +173,12 @@ def main() -> None:
     session = TownSession(decision_maker)
     server = ThreadingHTTPServer(
         (HOST, PORT),
-        make_handler(session, mode, dialogue_maker),
+        make_handler(
+            session,
+            mode,
+            decision_maker,
+            dialogue_maker,
+        ),
     )
     url = f"http://{HOST}:{PORT}"
     print("PHASE 7: PYTHON-BACKED INTERACTIVE TOWN")

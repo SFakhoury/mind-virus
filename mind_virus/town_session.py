@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import json
+from pathlib import Path
 from typing import Callable
 
 from .agent import Agent
@@ -62,6 +64,7 @@ class TownSession:
         self.turns: list[TownTurn] = []
         self.stopped = False
         self.chat_count = 0
+        self.chats: list[dict[str, object]] = []
 
     def step(self) -> TownTurn:
         if self.stopped:
@@ -116,6 +119,7 @@ class TownSession:
             ],
             "turns": [asdict(turn) for turn in self.turns],
             "chat_count": self.chat_count,
+            "chats": list(self.chats),
         }
 
     def chat(self, dialogue_maker) -> dict[str, object]:
@@ -136,9 +140,30 @@ class TownSession:
             interpretation=dialogue.listener_reply,
         )
         self.chat_count += 1
-        return {
+        chat = {
             "speaker": speaker.name,
             "listener": listener.name,
             **dialogue.model_dump(),
             "chat_number": self.chat_count,
         }
+        self.chats.append(chat)
+        return chat
+
+    def save(
+        self,
+        path: str | Path,
+        *,
+        mode: str,
+        usage: dict[str, object],
+    ) -> Path:
+        """Persist the current auditable town session snapshot."""
+        output = Path(path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(
+            json.dumps(
+                {"mode": mode, "usage": usage, **self.state()},
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        return output

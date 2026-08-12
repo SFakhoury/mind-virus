@@ -1,5 +1,8 @@
 import unittest
 from unittest.mock import Mock
+from tempfile import TemporaryDirectory
+from pathlib import Path
+import json
 
 from mind_virus.agent import Agent
 from mind_virus.decision import TransmissionDecision
@@ -72,6 +75,23 @@ class TownSessionTests(unittest.TestCase):
         self.assertIn("Never invent", instructions)
         self.assertIn("written statement", instructions)
         self.assertIn("inspection", instructions)
+
+    def test_session_snapshot_saves_turns_chats_and_usage(self):
+        session = TownSession(self.stopping_decision)
+        session.step()
+        session.chat(self.dialogue)
+        with TemporaryDirectory() as directory:
+            output = session.save(
+                Path(directory) / "session.json",
+                mode="simulation",
+                usage={"calls": 0, "estimated_cost_usd": 0.0},
+            )
+            saved = json.loads(output.read_text(encoding="utf-8"))
+
+        self.assertEqual(saved["mode"], "simulation")
+        self.assertEqual(len(saved["turns"]), 1)
+        self.assertEqual(len(saved["chats"]), 1)
+        self.assertEqual(saved["usage"]["calls"], 0)
 
     @staticmethod
     def repeating_decision(listener, speaker, message):

@@ -1,7 +1,13 @@
 ﻿import unittest
 from pathlib import Path
 
-from scripts.run_town_ui import HOST, PORT, UI_DIRECTORY, simulation_decision
+from scripts.run_town_ui import (
+    HOST,
+    PORT,
+    UI_DIRECTORY,
+    simulation_decision,
+    usage_summary,
+)
 from mind_virus.agent import Agent
 
 
@@ -36,6 +42,14 @@ class TownUIServerTests(unittest.TestCase):
         self.assertFalse(decision.believes_claim)
         self.assertFalse(decision.repeats_claim)
         self.assertIn("firsthand", decision.reason)
+
+    def test_simulation_usage_is_zero(self):
+        usage = usage_summary(simulation_decision, lambda *_: None)
+
+        self.assertEqual(usage["calls"], 0)
+        self.assertEqual(usage["input_tokens"], 0)
+        self.assertEqual(usage["output_tokens"], 0)
+        self.assertEqual(usage["estimated_cost_usd"], 0)
 
 
 if __name__ == "__main__":
