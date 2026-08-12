@@ -89,6 +89,9 @@ discoveries across families of tested outcomes.
 The measurement suite now quantifies claim mutation, confidence calibration,
 exposure reach, propagation depth, unique transmission edges, and network-edge
 coverage as distinct research outcomes.
+Raw model outputs can now be randomized into blinded review packets with a
+separate provenance key, dual-reviewer judgments, Cohen's kappa agreement,
+and explicit disagreement lists for independent adjudication.
 
 - Multiple model families or versions
 - Prompt and temperature sensitivity analysis
