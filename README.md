@@ -46,19 +46,35 @@ This distinction separates information exposure from actual belief formation.
 
 ## Project Status
 
-**Current phase: Phase 7 complete - Interactive Visual Town Prototype**
+**Current phase: Phase 7 complete - Python-Backed Interactive AI Town**
 
 The research pipeline and visual prototype are complete. The core system supports private memories, scored retrieval, model-backed interpretation, controlled experiments, confirmatory statistical analysis, and an animated browser-based town.
 
 ## Launch the Visual Town
 
+### Free simulation mode
+
 ```powershell
 python -m scripts.run_town_ui
 ```
 
+This deterministic mode is free and makes no API requests. It is intended for UI demonstrations, development, and reproducible testing.
+
+### Live AI mode
+
+Set `OPENAI_API_KEY`, then run:
+
+```powershell
+python -m scripts.run_town_ui --live
+```
+
+Live mode requires typing `RUN` before any paid request is made. A session is capped at four model calls: one listener decision and three role-aware follow-up conversations.
+
 The browser opens at `http://127.0.0.1:8000`. Keep the terminal open while the town is running and press `Ctrl+C` to stop it.
 
-The current town is a scripted UI prototype that demonstrates movement, simulated conversations, exposure, repetition, belief, and time progression. The research experiments use the model-backed Python pipeline; the prototype's browser dialogue is not generated live by an LLM.
+Both modes use real Python `Agent` objects, private memories, roles, and the town-session API. Live mode uses the configured OpenAI model for structured belief and repetition decisions and for grounded follow-up dialogue. The UI displays calls, tokens, estimated cost, exposure, belief, repetition, and propagation generation.
+
+The latest session is saved locally to `results/town_session_latest.json`, including its mode, model usage, propagation decisions, conversations, and agent memory counts. Generated result files remain excluded from Git.
 
 ## Run the Test Suite
 
