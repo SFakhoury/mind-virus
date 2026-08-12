@@ -33,6 +33,17 @@ class AutonomousTownTests(unittest.TestCase):
 
         self.assertEqual(len(self.town.agents["Dana"].memories), before + 1)
 
+    def test_conversation_is_stored_in_speaker_memory(self):
+        before = len(self.town.agents["Alice"].memories)
+
+        conversations = self.town.tick()
+
+        self.assertEqual(len(self.town.agents["Alice"].memories), before + 1)
+        self.assertEqual(
+            self.town.agents["Alice"].memories.all()[-1].id,
+            conversations[0].speaker_memory_id,
+        )
+
     def test_interaction_event_is_processed_only_once(self):
         self.town.tick()
         first_count = len(self.town.conversations)
@@ -51,6 +62,7 @@ class AutonomousTownTests(unittest.TestCase):
             state["autonomous_conversations"][0]["location_id"],
             "town_hall",
         )
+        self.assertIn("autonomous_reflections", state)
 
     def test_requires_agent_for_every_world_resident(self):
         with self.assertRaises(ValueError):
@@ -64,6 +76,37 @@ class AutonomousTownTests(unittest.TestCase):
         self.assertGreaterEqual(len(town.conversations), 1)
         self.assertEqual(town.conversations[0].speaker, "Dana")
         self.assertTrue(town.conversations[0].supporting_memory_ids)
+
+    def test_conversation_automatically_triggers_ready_reflections(self):
+        self.town.agents["Alice"].observe(
+            "Current town events are discussed at Town Hall.",
+            5,
+        )
+        self.town.agents["Alice"].observe(
+            "Dana reviews current town events.",
+            5,
+        )
+        self.town.agents["Dana"].observe(
+            "Alice reports current town events.",
+            5,
+        )
+
+        self.town.tick()
+
+        reflected_agents = {item.agent for item in self.town.reflections}
+        self.assertEqual(reflected_agents, {"Alice", "Dana"})
+        for item in self.town.reflections:
+            self.assertEqual(len(item.source_memory_ids), 3)
+
+    def test_automatic_reflections_are_exposed_to_browser(self):
+        for agent in self.town.agents.values():
+            agent.observe("Current town events matter at Town Hall.", 5)
+            agent.observe("Town Hall hosts discussion of current events.", 5)
+        self.town.tick()
+
+        state = self.town.browser_state()
+
+        self.assertGreaterEqual(len(state["autonomous_reflections"]), 1)
 
 
 if __name__ == "__main__":

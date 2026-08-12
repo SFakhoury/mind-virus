@@ -40,6 +40,8 @@ class TownUIServerTests(unittest.TestCase):
         self.assertIn("resident.decision_reason", script)
         self.assertIn("world.autonomous_conversations", script)
         self.assertIn("seenAutonomousConversations", script)
+        self.assertIn("seenAutonomousReflections", script)
+        self.assertIn("world.autonomous_reflections", script)
         self.assertIn("source.bubbleUntil", script)
         self.assertIn('state.experience==="autonomous-town"', script)
         self.assertIn("!autonomousMode&&!sessionStopped", script)

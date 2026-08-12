@@ -67,6 +67,7 @@ class Agent:
         message: str,
         importance: int,
         interpretation: str | None = None,
+        related_memory_ids: tuple[str, ...] = (),
     ) -> Memory:
         """Store the listener's memory of another agent's statement."""
         cleaned_message = message.strip()
@@ -95,6 +96,7 @@ class Agent:
             content=memory_content,
             importance=importance,
             source="dialogue",
+            related_memory_ids=related_memory_ids,
         )
 
     def recall(

@@ -5,6 +5,7 @@ from dataclasses import asdict, dataclass
 from mind_virus.agent import Agent
 from mind_virus.conversation_planning import plan_grounded_conversation
 from mind_virus.memory_context import ConversationContext
+from mind_virus.reflection import reflect_on_memories
 from mind_virus.world import WorldState, build_default_world
 
 
@@ -20,6 +21,19 @@ class AutonomousConversation:
     message: str
     retrieval_query: str
     supporting_memory_ids: tuple[str, ...]
+    speaker_memory_id: str
+    listener_memory_id: str
+
+
+@dataclass(frozen=True)
+class AutonomousReflection:
+    minute: int
+    day: int
+    agent: str
+    topic: str
+    memory_id: str
+    source_memory_ids: tuple[str, ...]
+    content: str
 
 
 class AutonomousTown:
@@ -38,6 +52,7 @@ class AutonomousTown:
                 f"Missing cognitive agents for residents: {sorted(missing)}"
             )
         self.conversations: list[AutonomousConversation] = []
+        self.reflections: list[AutonomousReflection] = []
         self._event_cursor = 0
 
     def tick(self, minutes: int = 1) -> list[AutonomousConversation]:
@@ -71,11 +86,18 @@ class AutonomousTown:
                 listener,
                 context,
             )
-            listener.hear(
+            speaker_memory = speaker.remember(
+                f'I told {listener.name}: "{plan.proposed_message}"',
+                4,
+                "dialogue",
+                related_memory_ids=plan.memory_ids,
+            )
+            listener_memory = listener.hear(
                 speaker,
                 plan.proposed_message,
                 importance=4,
                 interpretation=plan.proposed_message,
+                related_memory_ids=plan.memory_ids,
             )
             conversation = AutonomousConversation(
                 minute=int(event["minute"]),
@@ -88,15 +110,40 @@ class AutonomousTown:
                 message=plan.proposed_message,
                 retrieval_query=plan.retrieval_query,
                 supporting_memory_ids=plan.memory_ids,
+                speaker_memory_id=speaker_memory.id,
+                listener_memory_id=listener_memory.id,
             )
             self.conversations.append(conversation)
             new_conversations.append(conversation)
+            self._reflect_if_ready(speaker, topic)
+            self._reflect_if_ready(listener, topic)
         return new_conversations
+
+    def _reflect_if_ready(self, agent: Agent, topic: str) -> None:
+        reflection = reflect_on_memories(agent, topic)
+        if reflection is None or any(
+            item.memory_id == reflection.id for item in self.reflections
+        ):
+            return
+        self.reflections.append(
+            AutonomousReflection(
+                minute=self.world.absolute_minute,
+                day=self.world.day,
+                agent=agent.name,
+                topic=topic,
+                memory_id=reflection.id,
+                source_memory_ids=reflection.related_memory_ids,
+                content=reflection.content,
+            )
+        )
 
     def browser_state(self) -> dict[str, object]:
         state = self.world.browser_state()
         state["autonomous_conversations"] = [
             asdict(conversation) for conversation in self.conversations[-20:]
+        ]
+        state["autonomous_reflections"] = [
+            asdict(reflection) for reflection in self.reflections[-20:]
         ]
         return state
 
