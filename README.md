@@ -50,7 +50,8 @@ The core agent loop now supports private memories, scored retrieval, dialogue, a
 
 - [Architecture](docs/architecture.md)
 - [Research Foundations](docs/research-foundations.md)
-- [References](docs/references.md)
+
+- [Methodology Notes](docs/methodology-notes.md)
 
 ## Planned Deliverables
 
@@ -66,6 +67,7 @@ The core agent loop now supports private memories, scored retrieval, dialogue, a
 Experimental claims will be based on repeated logged trials rather than individual LLM outputs.
 
 The project prioritizes reproducibility, controlled comparisons, clear documentation, and minimal experimental confounds over unnecessary simulation complexity.
+
 
 
 
