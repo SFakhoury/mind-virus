@@ -3,3 +3,4 @@
 .pytest_cache/
 results/*.csv
 .env
+results/*.json
