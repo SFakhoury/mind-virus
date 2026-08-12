@@ -98,6 +98,8 @@ meets its prespecified consistency threshold without significant reversals.
 A resumable 32-call live pilot now compares Luna and Terra across neutral and
 evidence-explicit prompts, baseline and skeptical listeners, with per-call
 checkpoints, observed token accounting, and a $0.10 hard cost ceiling.
+A separate resumable extension tests the same model, prompt, and intervention
+matrix across three distinct claims before any larger confirmatory expansion.
 
 - Multiple model families or versions
 - Prompt and temperature sensitivity analysis
