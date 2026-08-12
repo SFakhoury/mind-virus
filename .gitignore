@@ -7,3 +7,4 @@ results/*.json
 results/*.jsonl
 results/**/*.json
 results/**/*.jsonl
+results/*.log.jsonl

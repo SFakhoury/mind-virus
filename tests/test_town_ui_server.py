@@ -67,6 +67,9 @@ class TownUIServerTests(unittest.TestCase):
         self.assertIn('"/api/v1/jobs/"', source)
         self.assertIn('path == "/jobs/step"', source)
         self.assertIn("mutation_lock", source)
+        self.assertIn('"/api/v1/metrics"', source)
+        self.assertIn("errors_total", source)
+        self.assertIn("production_logger", source)
 
     def test_autonomous_mode_hides_research_only_panels(self):
         markup = (UI_DIRECTORY / "index.html").read_text(encoding="utf-8")

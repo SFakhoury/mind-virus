@@ -17,6 +17,7 @@ from mind_virus.decision import OpenAIDecisionMaker, TransmissionDecision
 from mind_virus.town_session import TownSession
 from mind_virus.production_store import ProductionStore
 from mind_virus.live_sync import LiveStateBroker
+from mind_virus.observability import OperationalMetrics, production_logger
 from mind_virus.town_dialogue import (
     OpenAITownDialogueMaker,
     TownDialogue,
@@ -37,6 +38,7 @@ WORLD_OUTPUT = (
     / "town_world_latest.json"
 )
 DATABASE_OUTPUT = Path(__file__).resolve().parent.parent / "results" / "mind_virus.db"
+LOG_OUTPUT = Path(__file__).resolve().parent.parent / "results" / "mind_virus.log.jsonl"
 API_VERSION = "v1"
 
 
@@ -122,6 +124,8 @@ def make_handler(
 ):
     broker = LiveStateBroker()
     mutation_lock = Lock()
+    metrics = OperationalMetrics()
+    logger = production_logger(LOG_OUTPUT)
 
     def snapshot():
         usage = usage_summary(decision_maker, dialogue_maker)
@@ -145,6 +149,10 @@ def make_handler(
             return False
 
         def send_json(self, payload, status=200):
+            metrics.increment("responses_total")
+            if status >= 400:
+                metrics.increment("errors_total")
+            logger.info("http_response", extra={"context": {"path": self.path, "status": status}})
             body = json.dumps(payload).encode("utf-8")
             self.send_response(status)
             self.send_header("Content-Type", "application/json")
@@ -176,7 +184,11 @@ def make_handler(
                 return
             if self.path == "/api/v1/health":
                 health = store.health() if store else {"status": "ok", "database": "disabled"}
-                self.send_json({"api_version": API_VERSION, **health})
+                self.send_json({"api_version": API_VERSION, **health,
+                                "queue": jobs.metrics() if jobs else {}})
+                return
+            if self.path == "/api/v1/metrics":
+                self.send_json({**metrics.snapshot(), "queue": jobs.metrics() if jobs else {}})
                 return
             if self.path == "/api/v1/state":
                 self.send_json(snapshot())
@@ -197,8 +209,10 @@ def make_handler(
             super().do_GET()
 
         def do_POST(self):
+            metrics.increment("mutation_requests_total")
             path = self.path.removeprefix("/api/v1") if self.path.startswith("/api/v1/") else self.path
             if mode == "live-ai" and path in ("/api/chat", "/api/step") and not self.authorized():
+                metrics.increment("authentication_failures_total")
                 return
             if path == "/jobs/step":
                 if jobs is None or not self.authorized():
