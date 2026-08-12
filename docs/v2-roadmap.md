@@ -55,7 +55,9 @@ duplicating events, plus an auditable cost and decision record.
 
 **Status: in progress.** A validated, fingerprinted experiment specification
 now defines networks, town sizes, claims, evidence conditions, interventions,
-intensities, outcomes, dataset stage, trial counts, and random seed.
+intensities, outcomes, dataset stage, trial counts, and random seed. It now
+builds deterministic chain, ring, complete, and connected small-world social
+networks directly from that specification.
 
 - Multiple social-network structures and town sizes
 - Multiple misinformation topics and evidence conditions
