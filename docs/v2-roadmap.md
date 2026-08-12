@@ -86,6 +86,9 @@ with every cell tied to the frozen experiment specification.
 Paired analyses now report raw effects, standardized Cohen's dz values, and
 bootstrap intervals, while Benjamini-Hochberg adjustment controls false
 discoveries across families of tested outcomes.
+The measurement suite now quantifies claim mutation, confidence calibration,
+exposure reach, propagation depth, unique transmission edges, and network-edge
+coverage as distinct research outcomes.
 
 - Multiple model families or versions
 - Prompt and temperature sensitivity analysis
