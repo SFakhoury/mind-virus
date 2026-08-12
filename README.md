@@ -50,6 +50,10 @@ This distinction separates information exposure from actual belief formation.
 
 The research pipeline and visual prototype are complete. The core system supports private memories, scored retrieval, model-backed interpretation, controlled experiments, confirmatory statistical analysis, and an animated browser-based town.
 
+Development toward the full research platform continues under the
+[v2.0 roadmap](docs/v2-roadmap.md). The current work is Phase 8: Persistent
+World Engine.
+
 ## Launch the Visual Town
 
 ### Free simulation mode
