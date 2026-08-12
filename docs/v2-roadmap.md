@@ -95,6 +95,9 @@ and explicit disagreement lists for independent adjudication.
 Robustness synthesis now reports direction consistency, supporting,
 contradicting, and inconclusive cells, and only preserves a conclusion when it
 meets its prespecified consistency threshold without significant reversals.
+A resumable 32-call live pilot now compares Luna and Terra across neutral and
+evidence-explicit prompts, baseline and skeptical listeners, with per-call
+checkpoints, observed token accounting, and a $0.10 hard cost ceiling.
 
 - Multiple model families or versions
 - Prompt and temperature sensitivity analysis
