@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mind-Virus Town</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div><h1>MIND-VIRUS · LIVE TOWN</h1><p>A visual simulation of exposure, repetition, and belief</p></div>
+    <div class="clock" id="clock">DAY 01 · 08:00</div>
+  </header>
+  <main>
+    <section class="stage">
+      <canvas id="town" aria-label="Animated town simulation"></canvas>
+      <div class="controls"><button id="toggle">Pause</button><button id="reset" class="secondary">Reset</button></div>
+    </section>
+    <aside>
+      <section class="card"><h2>Active claim</h2><blockquote>“The bakery is giving away free bread today.”</blockquote><p class="legend">● Baseline &nbsp; <span>◆ Skeptical</span></p></section>
+      <section class="card"><h2>Propagation</h2><div class="metrics"><div><strong id="exposed">1</strong><small>EXPOSED</small></div><div><strong id="believers">0</strong><small>BELIEVERS</small></div><div><strong id="repeats">0</strong><small>REPETITIONS</small></div><div><strong id="generation">0</strong><small>GENERATION</small></div></div></section>
+      <section class="card"><h2>Residents</h2><div id="agents"></div></section>
+      <section class="card"><h2>Town activity</h2><div id="log" class="log"></div></section>
+    </aside>
+  </main>
+  <script src="town.js"></script>
+</body>
+</html>

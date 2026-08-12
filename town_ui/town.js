@@ -1,0 +1,16 @@
+const canvas=document.querySelector("#town"),ctx=canvas.getContext("2d");
+const people=[
+ {name:"Alice",color:"#df5b3f",skeptical:false,x:.18,y:.72,knows:true,believes:false},
+ {name:"Bob",color:"#e8ad46",skeptical:true,x:.38,y:.26,knows:false,believes:false},
+ {name:"Charlie",color:"#4776a8",skeptical:false,x:.70,y:.28,knows:false,believes:false},
+ {name:"Dana",color:"#8c5c91",skeptical:true,x:.78,y:.72,knows:false,believes:false}
+];
+people.forEach(p=>{p.tx=p.x;p.ty=p.y});
+const places=[["BAKERY",.07,.07,.25,.20,"#d88761"],["LIBRARY",.68,.07,.25,.20,"#6f8bab"],["TOWN HALL",.07,.66,.25,.20,"#cfb25e"],["BUS STOP",.69,.68,.23,.15,"#71986d"]];
+let running=true,ticks=0,repeats=0,generation=0,lastSpread=-200;
+function resize(){const r=canvas.getBoundingClientRect(),d=devicePixelRatio;canvas.width=r.width*d;canvas.height=r.height*d;ctx.setTransform(d,0,0,d,0,0)}
+function addLog(text){const e=document.createElement("div");e.className="event";e.textContent=text;document.querySelector("#log").prepend(e)}
+function draw(){const w=canvas.clientWidth,h=canvas.clientHeight;ctx.clearRect(0,0,w,h);ctx.fillStyle="#a8cd8a";ctx.fillRect(0,0,w,h);ctx.fillStyle="#d6c7a9";ctx.fillRect(0,h*.43,w,h*.14);ctx.fillRect(w*.44,0,w*.12,h);places.forEach(([name,x,y,pw,ph,color])=>{ctx.fillStyle=color;ctx.fillRect(x*w,y*h,pw*w,ph*h);ctx.fillStyle="#f4e9d1";ctx.fillRect((x+.09)*w,(y+ph-.07)*h,.07*w,.07*h);ctx.fillStyle="#172033";ctx.font="bold 12px Segoe UI";ctx.fillText(name,(x+.02)*w,(y+.04)*h)});people.forEach(p=>{const x=p.x*w,y=p.y*h;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(x,y,12,0,Math.PI*2);ctx.fill();ctx.strokeStyle=p.skeptical?"#214b78":"white";ctx.lineWidth=p.skeptical?4:2;ctx.stroke();if(p.knows){ctx.fillStyle="white";ctx.beginPath();ctx.arc(x+10,y-11,5,0,Math.PI*2);ctx.fill()}ctx.fillStyle="#172033";ctx.font="bold 12px Segoe UI";ctx.fillText(p.name,x-18,y+29)})}
+function renderPanel(){exposed.textContent=people.filter(p=>p.knows).length;believers.textContent=people.filter(p=>p.believes).length;document.querySelector("#repeats").textContent=repeats;document.querySelector("#generation").textContent=generation;agents.innerHTML=people.map(p=>`<div class="agent"><i class="dot" style="background:${p.color}"></i><span>${p.name}${p.knows?" · exposed":""}</span><b class="${p.skeptical?"skeptic":""}">${p.skeptical?"SKEPTICAL":p.believes?"BELIEVES":"BASELINE"}</b></div>`).join("")}
+function update(){if(running){ticks++;people.forEach(p=>{if(Math.random()<.006){p.tx=.12+Math.random()*.76;p.ty=.12+Math.random()*.76}p.x+=(p.tx-p.x)*.008;p.y+=(p.ty-p.y)*.008});if(ticks-lastSpread>240){const source=[...people].reverse().find(p=>p.knows),target=people.find(p=>!p.knows);if(source&&target){target.knows=true;target.believes=!target.skeptical&&Math.random()>.52;repeats++;generation++;lastSpread=ticks;target.tx=source.x;target.ty=source.y;addLog(`${source.name} told ${target.name}. ${target.believes?"Claim believed.":"Claim treated as unverified."}`);renderPanel()}}clock.textContent=`DAY 01 · ${String(8+Math.floor(ticks/300)%12).padStart(2,"0")}:00`}draw();requestAnimationFrame(update)}
+toggle.onclick=()=>{running=!running;toggle.textContent=running?"Pause":"Resume"};reset.onclick=()=>location.reload();window.onresize=resize;resize();renderPanel();addLog("Alice introduced the bakery claim.");requestAnimationFrame(update);
