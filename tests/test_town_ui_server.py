@@ -62,6 +62,7 @@ class TownUIServerTests(unittest.TestCase):
         self.assertIn('"/api/v1/state"', source)
         self.assertIn('"/api/v1/state/latest"', source)
         self.assertIn("store.save_current_state", source)
+        self.assertIn("town = load_town()", source)
         self.assertIn('"/api/v1/events"', source)
         self.assertIn("broker.publish", source)
         self.assertIn("X-Mind-Virus-Token", source)
@@ -112,4 +113,5 @@ class TownUIServerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 

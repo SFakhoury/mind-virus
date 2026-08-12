@@ -313,7 +313,7 @@ def main() -> None:
         dialogue_maker = simulation_dialogue
 
     session = TownSession(decision_maker)
-    town = AutonomousTown()
+    town = load_town()
     store = ProductionStore(DATABASE_OUTPUT)
     authenticator = APIAuthenticator.from_environment(required=args.production)
     jobs = BackgroundJobQueue()
@@ -351,4 +351,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
