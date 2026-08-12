@@ -5,6 +5,7 @@ from typing import Callable
 
 from .agent import Agent
 from .decision import TransmissionDecision
+from .town_dialogue import TownDialogue
 
 
 DecisionMaker = Callable[[Agent, Agent, str], TransmissionDecision]
@@ -60,6 +61,7 @@ class TownSession:
         self.generation = 0
         self.turns: list[TownTurn] = []
         self.stopped = False
+        self.chat_count = 0
 
     def step(self) -> TownTurn:
         if self.stopped:
@@ -113,4 +115,30 @@ class TownSession:
                 for agent in self.agents
             ],
             "turns": [asdict(turn) for turn in self.turns],
+            "chat_count": self.chat_count,
+        }
+
+    def chat(self, dialogue_maker) -> dict[str, object]:
+        """Generate and remember one post-propagation conversation."""
+        if self.chat_count >= 3:
+            raise RuntimeError("The three-conversation limit was reached.")
+        pair_index = self.chat_count % 3
+        pairs = ((1, 2), (2, 3), (3, 0))
+        speaker_index, listener_index = pairs[pair_index]
+        speaker = self.agents[speaker_index]
+        listener = self.agents[listener_index]
+        dialogue: TownDialogue = dialogue_maker(speaker, listener)
+        speaker.remember(dialogue.speaker_message, 4, "dialogue")
+        listener.hear(
+            speaker,
+            dialogue.speaker_message,
+            importance=4,
+            interpretation=dialogue.listener_reply,
+        )
+        self.chat_count += 1
+        return {
+            "speaker": speaker.name,
+            "listener": listener.name,
+            **dialogue.model_dump(),
+            "chat_number": self.chat_count,
         }

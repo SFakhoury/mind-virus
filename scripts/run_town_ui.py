@@ -11,6 +11,10 @@ import webbrowser
 
 from mind_virus.decision import OpenAIDecisionMaker, TransmissionDecision
 from mind_virus.town_session import TownSession
+from mind_virus.town_dialogue import (
+    OpenAITownDialogueMaker,
+    TownDialogue,
+)
 
 
 HOST = "127.0.0.1"
@@ -40,7 +44,31 @@ def simulation_decision(listener, speaker, message):
     )
 
 
-def make_handler(session: TownSession, mode: str):
+def simulation_dialogue(speaker, listener):
+    exchanges = {
+        "Bob": (
+            "The bakery rumor was incorrect, so I clarified what I know firsthand.",
+            "That correction is more reliable than the original secondhand report.",
+        ),
+        "Charlie": (
+            "I recorded the correction at the library information desk.",
+            "Good. Residents should be able to distinguish the correction from the rumor.",
+        ),
+        "Dana": (
+            "The bus stop inspection is scheduled for tomorrow morning.",
+            "I will include that confirmed update in my town notes.",
+        ),
+    }
+    first, reply = exchanges[speaker.name]
+    return TownDialogue(
+        speaker_message=first,
+        listener_reply=reply,
+        topic="town update",
+        references_rumor="rumor" in first.lower(),
+    )
+
+
+def make_handler(session: TownSession, mode: str, dialogue_maker):
     class TownHandler(SimpleHTTPRequestHandler):
         def send_json(self, payload, status=200):
             body = json.dumps(payload).encode("utf-8")
@@ -57,6 +85,14 @@ def make_handler(session: TownSession, mode: str):
             super().do_GET()
 
         def do_POST(self):
+            if self.path == "/api/chat":
+                try:
+                    chat = session.chat(dialogue_maker)
+                except RuntimeError as error:
+                    self.send_json({"error": str(error)}, 409)
+                    return
+                self.send_json({"chat": chat, "state": session.state()})
+                return
             if self.path != "/api/step":
                 self.send_json({"error": "Not found."}, 404)
                 return
@@ -86,16 +122,21 @@ def main() -> None:
     if args.live:
         if not os.getenv("OPENAI_API_KEY"):
             raise RuntimeError("OPENAI_API_KEY is not configured.")
-        print("LIVE AI mode can make at most 3 paid API calls.")
+        print("LIVE AI mode can make at most 4 paid API calls.")
         if input("Type RUN to continue: ").strip() != "RUN":
             print("Live town cancelled.")
             return
         decision_maker = OpenAIDecisionMaker()
+        dialogue_maker = OpenAITownDialogueMaker()
     else:
         decision_maker = simulation_decision
+        dialogue_maker = simulation_dialogue
 
     session = TownSession(decision_maker)
-    server = ThreadingHTTPServer((HOST, PORT), make_handler(session, mode))
+    server = ThreadingHTTPServer(
+        (HOST, PORT),
+        make_handler(session, mode, dialogue_maker),
+    )
     url = f"http://{HOST}:{PORT}"
     print("PHASE 7: PYTHON-BACKED INTERACTIVE TOWN")
     print("-" * 48)

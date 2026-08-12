@@ -25,6 +25,7 @@ class TownUIServerTests(unittest.TestCase):
         self.assertIn("DAY ${String(day)", script)
         self.assertIn('fetch("/api/state")', script)
         self.assertIn('fetch("/api/step"', script)
+        self.assertIn('fetch("/api/chat"', script)
         self.assertIn("LIVE AI MODE", script)
 
     def test_simulation_bob_uses_firsthand_evidence(self):
