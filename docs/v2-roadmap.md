@@ -133,6 +133,8 @@ An unprivileged Docker image, persistent Compose volume, container health
 check, and GitHub Actions test/build pipeline now validate every change.
 Versioned startup migrations, transactionally consistent backups, isolated
 restore validation, and an incident-recovery runbook are now implemented.
+A Render Blueprint defines the public staging service, CI-gated deployment,
+generated application secret, health gate, and persistent SQLite disk.
 
 - Versioned backend API and persistent database
 - Browser client with live state synchronization

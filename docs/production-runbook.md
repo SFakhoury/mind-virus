@@ -8,6 +8,13 @@ Set `MIND_VIRUS_ACCESS_TOKEN` to a long random value, then run
 promotion. Provider credentials remain server-side and are added only when
 live AI mode is intentionally enabled.
 
+For public staging, deploy `render.yaml` as a Render Blueprint. It creates one
+Docker web service in Frankfurt, waits for CI checks before auto-deployment,
+generates the application access token, mounts a 1 GB disk at `/app/results`,
+and gates deployment on `/api/v1/health`. Because persistent disks require a
+paid Render web service, confirm the displayed monthly price before applying
+the Blueprint.
+
 ## Database migrations
 
 SQLite migrations run transactionally at startup using `PRAGMA user_version`.

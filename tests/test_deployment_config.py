@@ -25,6 +25,14 @@ class DeploymentConfigTests(unittest.TestCase):
         self.assertIn("Incident recovery", runbook)
         self.assertIn("ProductionStore.restore", drill)
 
+    def test_render_staging_blueprint_has_durable_storage_and_health_gate(self):
+        blueprint = Path("render.yaml").read_text(encoding="utf-8")
+        self.assertIn("runtime: docker", blueprint)
+        self.assertIn("autoDeployTrigger: checksPass", blueprint)
+        self.assertIn("healthCheckPath: /api/v1/health", blueprint)
+        self.assertIn("mountPath: /app/results", blueprint)
+        self.assertIn("generateValue: true", blueprint)
+
 
 if __name__ == "__main__":
     unittest.main()
