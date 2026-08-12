@@ -131,6 +131,8 @@ Structured JSON logging redacts secrets, operational metrics expose uptime and
 request/error counters, and health checks include database and queue status.
 An unprivileged Docker image, persistent Compose volume, container health
 check, and GitHub Actions test/build pipeline now validate every change.
+Versioned startup migrations, transactionally consistent backups, isolated
+restore validation, and an incident-recovery runbook are now implemented.
 
 - Versioned backend API and persistent database
 - Browser client with live state synchronization

@@ -19,7 +19,7 @@ class ProductionStoreTests(unittest.TestCase):
     def test_health_checks_database(self):
         with TemporaryDirectory() as directory:
             health = ProductionStore(Path(directory) / "town.db").health()
-            self.assertEqual(health, {"status": "ok", "database": "ok"})
+            self.assertEqual(health, {"status": "ok", "database": "ok", "schema_version": 2})
 
     def test_api_is_versioned(self):
         self.assertEqual(API_VERSION, "v1")
@@ -35,6 +35,18 @@ class ProductionStoreTests(unittest.TestCase):
 
             self.assertEqual(restored["mode"], "simulation")
             self.assertEqual(restored["payload"], {"generation": 2})
+
+    def test_backup_restore_preserves_current_state(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = ProductionStore(root / "source.db")
+            store.save_current_state("simulation", {"day": 4, "minute": 720})
+            backup = store.backup(root / "backups" / "town.db")
+
+            restored = ProductionStore.restore(backup, root / "restored.db")
+
+            self.assertEqual(restored.load_current_state()["payload"], {"day": 4, "minute": 720})
+            self.assertEqual(restored.schema_version, 2)
 
 
 if __name__ == "__main__":

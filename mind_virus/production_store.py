@@ -23,22 +23,53 @@ class ProductionStore:
     def _initialize(self) -> None:
         with closing(self._connect()) as connection:
             with connection:
-                connection.execute("""
+                version = int(connection.execute("PRAGMA user_version").fetchone()[0])
+                if version < 1:
+                    connection.execute("""
                     CREATE TABLE IF NOT EXISTS town_snapshots (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                         mode TEXT NOT NULL,
                         payload TEXT NOT NULL
                     )
-                """)
-                connection.execute("""
+                    """)
+                    connection.execute("PRAGMA user_version = 1")
+                if version < 2:
+                    connection.execute("""
                     CREATE TABLE IF NOT EXISTS current_town_state (
                         singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
                         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                         mode TEXT NOT NULL,
                         payload TEXT NOT NULL
                     )
-                """)
+                    """)
+                    connection.execute("PRAGMA user_version = 2")
+
+    @property
+    def schema_version(self) -> int:
+        with closing(self._connect()) as connection:
+            return int(connection.execute("PRAGMA user_version").fetchone()[0])
+
+    def backup(self, destination: str | Path) -> Path:
+        output = Path(destination)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        with closing(self._connect()) as source, closing(sqlite3.connect(output)) as target:
+            source.backup(target)
+        return output
+
+    @classmethod
+    def restore(cls, backup_path: str | Path, destination: str | Path) -> "ProductionStore":
+        source_path = Path(backup_path)
+        if not source_path.is_file():
+            raise FileNotFoundError(source_path)
+        output = Path(destination)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        with closing(sqlite3.connect(source_path)) as source, closing(sqlite3.connect(output)) as target:
+            source.backup(target)
+        restored = cls(output)
+        if restored.health()["status"] != "ok":
+            raise RuntimeError("Restored database failed its health check.")
+        return restored
 
     def save_snapshot(self, mode: str, payload: dict[str, Any]) -> int:
         with closing(self._connect()) as connection:
@@ -86,4 +117,4 @@ class ProductionStore:
     def health(self) -> dict[str, object]:
         with closing(self._connect()) as connection:
             connection.execute("SELECT 1").fetchone()
-        return {"status": "ok", "database": "ok"}
+        return {"status": "ok", "database": "ok", "schema_version": self.schema_version}

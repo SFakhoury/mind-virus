@@ -19,6 +19,12 @@ class DeploymentConfigTests(unittest.TestCase):
         self.assertIn("python -m unittest discover -s tests -v", workflow)
         self.assertIn("docker/build-push-action@v6", workflow)
 
+    def test_recovery_runbook_and_drill_exist(self):
+        runbook = Path("docs/production-runbook.md").read_text(encoding="utf-8")
+        drill = Path("scripts/validate_phase13_recovery.py").read_text(encoding="utf-8")
+        self.assertIn("Incident recovery", runbook)
+        self.assertIn("ProductionStore.restore", drill)
+
 
 if __name__ == "__main__":
     unittest.main()
