@@ -12,6 +12,7 @@ import webbrowser
 from mind_virus.autonomous_town import AutonomousTown
 from mind_virus.decision import OpenAIDecisionMaker, TransmissionDecision
 from mind_virus.town_session import TownSession
+from mind_virus.production_store import ProductionStore
 from mind_virus.town_dialogue import (
     OpenAITownDialogueMaker,
     TownDialogue,
@@ -31,6 +32,8 @@ WORLD_OUTPUT = (
     / "results"
     / "town_world_latest.json"
 )
+DATABASE_OUTPUT = Path(__file__).resolve().parent.parent / "results" / "mind_virus.db"
+API_VERSION = "v1"
 
 
 def simulation_decision(listener, speaker, message):
@@ -109,6 +112,7 @@ def make_handler(
     decision_maker,
     dialogue_maker,
     experience: str = "autonomous-town",
+    store: ProductionStore | None = None,
 ):
     def snapshot():
         usage = usage_summary(decision_maker, dialogue_maker)
@@ -130,6 +134,13 @@ def make_handler(
             self.wfile.write(body)
 
         def do_GET(self):
+            if self.path == "/api/v1/health":
+                health = store.health() if store else {"status": "ok", "database": "disabled"}
+                self.send_json({"api_version": API_VERSION, **health})
+                return
+            if self.path == "/api/v1/state":
+                self.send_json(snapshot())
+                return
             if self.path == "/api/world":
                 self.send_json(town.browser_state())
                 return
@@ -139,12 +150,13 @@ def make_handler(
             super().do_GET()
 
         def do_POST(self):
-            if self.path == "/api/world/tick":
+            path = self.path.removeprefix("/api/v1") if self.path.startswith("/api/v1/") else self.path
+            if path == "/api/world/tick":
                 town.tick(5)
                 town.world.save(WORLD_OUTPUT)
                 self.send_json(town.browser_state())
                 return
-            if self.path == "/api/chat":
+            if path == "/api/chat":
                 try:
                     chat = session.chat(dialogue_maker)
                 except RuntimeError as error:
@@ -152,7 +164,7 @@ def make_handler(
                     return
                 self.send_json({"chat": chat, "state": snapshot()})
                 return
-            if self.path != "/api/step":
+            if path != "/api/step":
                 self.send_json({"error": "Not found."}, 404)
                 return
             try:
@@ -203,6 +215,7 @@ def main() -> None:
 
     session = TownSession(decision_maker)
     town = AutonomousTown()
+    store = ProductionStore(DATABASE_OUTPUT)
     server = ThreadingHTTPServer(
         (HOST, PORT),
         make_handler(
@@ -212,6 +225,7 @@ def main() -> None:
             decision_maker,
             dialogue_maker,
             experience,
+            store,
         ),
     )
     url = f"http://{HOST}:{PORT}"

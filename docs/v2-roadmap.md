@@ -80,7 +80,7 @@ implemented as one-off scripts.
 
 ## Phase 12: Robustness and Research Validation
 
-**Status: in progress.** Reproducible robustness manifests now cross model,
+**Status: complete.** Reproducible robustness manifests now cross model,
 prompt, temperature, and repetition settings in randomized execution order,
 with every cell tied to the frozen experiment specification.
 Paired analyses now report raw effects, standardized Cohen's dz values, and
@@ -115,6 +115,10 @@ Completion requires conclusions that survive the prespecified robustness
 checks and are reported with limitations and null results.
 
 ## Phase 13: Production Application
+
+**Status: in progress.** Initial production work adds a versioned v1 API,
+SQLite-backed durable storage, and a database-aware health check while
+preserving the prototype routes during migration.
 
 - Versioned backend API and persistent database
 - Browser client with live state synchronization
