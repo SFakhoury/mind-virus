@@ -53,7 +53,7 @@ duplicating events, plus an auditable cost and decision record.
 
 ## Phase 11: Generalized Experimental Framework
 
-**Status: in progress.** A validated, fingerprinted experiment specification
+**Status: complete.** A validated, fingerprinted experiment specification
 now defines networks, town sizes, claims, evidence conditions, interventions,
 intensities, outcomes, dataset stage, trial counts, and random seed. It now
 builds deterministic chain, ring, complete, and connected small-world social
@@ -64,6 +64,9 @@ and inoculation interventions can now be assigned at reproducible intensities
 while holding the original claim source constant. Confirmatory hypotheses and
 outcome definitions can now be frozen in tamper-evident preregistrations that
 cannot be silently replaced or created from pilot configurations.
+The generalized runner now assembles every configured condition, validates
+frozen outcomes, separates pilot and confirmatory datasets, enforces matching
+preregistrations, records provenance, and provides two-proportion power guidance.
 
 - Multiple social-network structures and town sizes
 - Multiple misinformation topics and evidence conditions

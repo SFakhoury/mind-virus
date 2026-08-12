@@ -5,3 +5,5 @@ results/*.csv
 .env
 results/*.json
 results/*.jsonl
+results/**/*.json
+results/**/*.jsonl
