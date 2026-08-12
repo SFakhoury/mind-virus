@@ -20,6 +20,9 @@ DecisionMaker = Callable[
 def run_calibrated_pilot(
     config: ExperimentConfig,
     decision_maker: DecisionMaker,
+    original_message: str = (
+        "I heard the bakery is giving away free bread."
+    ),
 ) -> ControlledResult:
     """Run matched trials with a reproducible skeptic subset."""
     if not callable(decision_maker):
@@ -31,9 +34,12 @@ def run_calibrated_pilot(
     maximum_generations: dict[str, int] = {}
     calls_made = 0
 
-    original = (
-        "I heard the bakery is giving away free bread."
-    )
+    original = original_message.strip()
+
+    if not original:
+        raise ValueError(
+            "Original message cannot be empty."
+        )
 
     for trial in range(config.trials_per_condition):
         trial_seed = config.seed + trial
@@ -111,3 +117,4 @@ def run_calibrated_pilot(
         calls_made=calls_made,
         maximum_generation_by_trial=maximum_generations,
     )
+
