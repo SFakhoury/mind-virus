@@ -57,7 +57,9 @@ duplicating events, plus an auditable cost and decision record.
 now defines networks, town sizes, claims, evidence conditions, interventions,
 intensities, outcomes, dataset stage, trial counts, and random seed. It now
 builds deterministic chain, ring, complete, and connected small-world social
-networks directly from that specification.
+networks directly from that specification. Matched condition-trials are now
+expanded and randomized reproducibly, with shared assignment and network seeds
+preserved across each matched comparison.
 
 - Multiple social-network structures and town sizes
 - Multiple misinformation topics and evidence conditions
