@@ -52,6 +52,13 @@ class TownUIServerTests(unittest.TestCase):
         self.assertIn("!autonomousMode&&!sessionStopped", script)
         self.assertIn("LIVE AI MODE", script)
 
+    def test_server_exposes_versioned_persistence_routes(self):
+        source = Path("scripts/run_town_ui.py").read_text(encoding="utf-8")
+        self.assertIn('"/api/v1/health"', source)
+        self.assertIn('"/api/v1/state"', source)
+        self.assertIn('"/api/v1/state/latest"', source)
+        self.assertIn("store.save_current_state", source)
+
     def test_autonomous_mode_hides_research_only_panels(self):
         markup = (UI_DIRECTORY / "index.html").read_text(encoding="utf-8")
 

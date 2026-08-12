@@ -31,6 +31,14 @@ class ProductionStore:
                         payload TEXT NOT NULL
                     )
                 """)
+                connection.execute("""
+                    CREATE TABLE IF NOT EXISTS current_town_state (
+                        singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+                        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        mode TEXT NOT NULL,
+                        payload TEXT NOT NULL
+                    )
+                """)
 
     def save_snapshot(self, mode: str, payload: dict[str, Any]) -> int:
         with closing(self._connect()) as connection:
@@ -50,6 +58,30 @@ class ProductionStore:
             return None
         return {"id": row["id"], "created_at": row["created_at"],
                 "mode": row["mode"], "payload": json.loads(row["payload"])}
+
+    def save_current_state(self, mode: str, payload: dict[str, Any]) -> None:
+        """Atomically replace the one restart-safe current town snapshot."""
+        encoded = json.dumps(payload, sort_keys=True)
+        with closing(self._connect()) as connection:
+            with connection:
+                connection.execute("""
+                    INSERT INTO current_town_state (singleton, mode, payload)
+                    VALUES (1, ?, ?)
+                    ON CONFLICT(singleton) DO UPDATE SET
+                        updated_at = CURRENT_TIMESTAMP,
+                        mode = excluded.mode,
+                        payload = excluded.payload
+                """, (mode, encoded))
+
+    def load_current_state(self) -> dict[str, Any] | None:
+        with closing(self._connect()) as connection:
+            row = connection.execute(
+                "SELECT updated_at, mode, payload FROM current_town_state WHERE singleton = 1"
+            ).fetchone()
+        if row is None:
+            return None
+        return {"updated_at": row["updated_at"], "mode": row["mode"],
+                "payload": json.loads(row["payload"])}
 
     def health(self) -> dict[str, object]:
         with closing(self._connect()) as connection:

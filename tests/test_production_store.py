@@ -24,6 +24,18 @@ class ProductionStoreTests(unittest.TestCase):
     def test_api_is_versioned(self):
         self.assertEqual(API_VERSION, "v1")
 
+    def test_current_state_survives_restart_and_is_replaced_atomically(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "town.db"
+            first = ProductionStore(path)
+            first.save_current_state("simulation", {"generation": 1})
+            first.save_current_state("simulation", {"generation": 2})
+
+            restored = ProductionStore(path).load_current_state()
+
+            self.assertEqual(restored["mode"], "simulation")
+            self.assertEqual(restored["payload"], {"generation": 2})
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -117,12 +117,15 @@ def make_handler(
     def snapshot():
         usage = usage_summary(decision_maker, dialogue_maker)
         session.save(SESSION_OUTPUT, mode=mode, usage=usage)
-        return {
+        payload = {
             "mode": mode,
             "experience": experience,
             "usage": usage,
             **session.state(),
         }
+        if store is not None:
+            store.save_current_state(mode, payload)
+        return payload
 
     class TownHandler(SimpleHTTPRequestHandler):
         def send_json(self, payload, status=200):
@@ -140,6 +143,13 @@ def make_handler(
                 return
             if self.path == "/api/v1/state":
                 self.send_json(snapshot())
+                return
+            if self.path == "/api/v1/state/latest":
+                saved = store.load_current_state() if store else None
+                if saved is None:
+                    self.send_json({"error": "No persisted town state exists."}, 404)
+                else:
+                    self.send_json(saved)
                 return
             if self.path == "/api/world":
                 self.send_json(town.browser_state())

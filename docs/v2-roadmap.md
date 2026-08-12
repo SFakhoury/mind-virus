@@ -118,7 +118,9 @@ checks and are reported with limitations and null results.
 
 **Status: in progress.** Initial production work adds a versioned v1 API,
 SQLite-backed durable storage, and a database-aware health check while
-preserving the prototype routes during migration.
+preserving the prototype routes during migration. The server now atomically
+persists its current town snapshot and exposes restart-safe retrieval through
+the versioned API.
 
 - Versioned backend API and persistent database
 - Browser client with live state synchronization
