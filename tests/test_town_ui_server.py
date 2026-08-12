@@ -1,7 +1,8 @@
 ﻿import unittest
 from pathlib import Path
 
-from scripts.run_town_ui import HOST, PORT, UI_DIRECTORY
+from scripts.run_town_ui import HOST, PORT, UI_DIRECTORY, simulation_decision
+from mind_virus.agent import Agent
 
 
 class TownUIServerTests(unittest.TestCase):
@@ -25,6 +26,15 @@ class TownUIServerTests(unittest.TestCase):
         self.assertIn("DAY ${String(day)", script)
         self.assertIn("let target=people.find", script)
         self.assertIn("I work there, and no giveaway was announced", script)
+
+    def test_simulation_bob_uses_firsthand_evidence(self):
+        alice = Agent("Alice", "Reporter")
+        bob = Agent("Bob", "Bakery worker")
+        decision = simulation_decision(bob, alice, "Bakery rumor")
+
+        self.assertFalse(decision.believes_claim)
+        self.assertFalse(decision.repeats_claim)
+        self.assertIn("firsthand", decision.reason)
 
 
 if __name__ == "__main__":
