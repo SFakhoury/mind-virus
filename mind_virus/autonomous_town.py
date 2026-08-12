@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 
 from mind_virus.agent import Agent
+from mind_virus.autonomous_interpretation import interpret_autonomous_message
+from mind_virus.claim import Claim
 from mind_virus.conversation_planning import plan_grounded_conversation
 from mind_virus.memory_context import ConversationContext
 from mind_virus.reflection import reflect_on_memories
@@ -27,6 +29,14 @@ class AutonomousConversation:
     supporting_memory_ids: tuple[str, ...]
     speaker_memory_id: str
     listener_memory_id: str
+    claim_id: str
+    topic_id: str
+    listener_interpretation: str
+    listener_believes: bool
+    listener_repeats: bool
+    listener_confidence: float
+    listener_reason: str
+    listener_relevant_memory_ids: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -120,6 +130,27 @@ class AutonomousTown:
                 listener,
                 context,
             )
+            relationship_trust = self.world.residents[
+                listener.name
+            ].relationships.get(speaker.name, 0.5)
+            interpretation = interpret_autonomous_message(
+                listener,
+                speaker,
+                plan.proposed_message,
+                supporting_memory_ids=plan.memory_ids,
+                relationship_trust=relationship_trust,
+            )
+            claim = Claim(
+                content=plan.proposed_message,
+                source_agent=speaker.name,
+                confidence=0.8 if plan.memory_ids else 0.3,
+            )
+            if interpretation.believes_message:
+                listener.consider_claim(
+                    claim,
+                    acceptance_threshold=interpretation.acceptance_threshold,
+                    belief_confidence=interpretation.confidence,
+                )
             speaker_memory = speaker.remember(
                 f'I told {listener.name}: "{plan.proposed_message}"',
                 4,
@@ -130,7 +161,7 @@ class AutonomousTown:
                 speaker,
                 plan.proposed_message,
                 importance=4,
-                interpretation=plan.proposed_message,
+                interpretation=interpretation.remembered_message,
                 related_memory_ids=plan.memory_ids,
             )
             conversation = AutonomousConversation(
@@ -148,6 +179,14 @@ class AutonomousTown:
                 supporting_memory_ids=plan.memory_ids,
                 speaker_memory_id=speaker_memory.id,
                 listener_memory_id=listener_memory.id,
+                claim_id=claim.id,
+                topic_id=claim.topic_id,
+                listener_interpretation=interpretation.remembered_message,
+                listener_believes=interpretation.believes_message,
+                listener_repeats=interpretation.repeats_message,
+                listener_confidence=interpretation.confidence,
+                listener_reason=interpretation.reason,
+                listener_relevant_memory_ids=interpretation.relevant_memory_ids,
             )
             self.conversations.append(conversation)
             new_conversations.append(conversation)

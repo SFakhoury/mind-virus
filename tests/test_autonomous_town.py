@@ -38,6 +38,35 @@ class AutonomousTownTests(unittest.TestCase):
 
         self.assertEqual(len(self.town.agents["Dana"].memories), before + 1)
 
+    def test_listener_interpretation_belief_and_repetition_are_recorded(self):
+        self.town.agents["Alice"].observe(
+            "Dana discussed current planning at Town Hall.",
+            6,
+        )
+
+        conversation = self.town.tick()[0]
+
+        self.assertTrue(conversation.listener_interpretation)
+        self.assertIsInstance(conversation.listener_believes, bool)
+        self.assertIsInstance(conversation.listener_repeats, bool)
+        self.assertGreaterEqual(conversation.listener_confidence, 0.0)
+        self.assertTrue(conversation.claim_id)
+        self.assertTrue(conversation.topic_id)
+
+    def test_accepted_autonomous_claim_creates_listener_belief(self):
+        self.town.agents["Dana"].personality = "A trusting town planner"
+        self.town.agents["Alice"].observe(
+            "Dana discussed current planning at Town Hall.",
+            6,
+        )
+
+        conversation = self.town.tick()[0]
+
+        self.assertTrue(conversation.listener_believes)
+        self.assertTrue(
+            self.town.agents["Dana"].believes(conversation.topic_id)
+        )
+
     def test_conversation_is_stored_in_speaker_memory(self):
         before = len(self.town.agents["Alice"].memories)
 
