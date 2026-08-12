@@ -83,6 +83,9 @@ implemented as one-off scripts.
 **Status: in progress.** Reproducible robustness manifests now cross model,
 prompt, temperature, and repetition settings in randomized execution order,
 with every cell tied to the frozen experiment specification.
+Paired analyses now report raw effects, standardized Cohen's dz values, and
+bootstrap intervals, while Benjamini-Hochberg adjustment controls false
+discoveries across families of tested outcomes.
 
 - Multiple model families or versions
 - Prompt and temperature sensitivity analysis
