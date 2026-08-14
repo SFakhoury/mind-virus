@@ -114,17 +114,38 @@ latest successful GitHub Actions run. Optionally show terminal output from
 > persistence, authentication, queues, observability, backups, and restart
 > recovery.
 
-### Scene 7 — Close (about 30 seconds)
+### Scene 7 — Conclusion (about 75 seconds)
 
 **Show:** The town and the project links in the README.
 
 **Say:**
 
 > Mind-Virus combines multi-agent AI, controlled experimentation, statistical
-> analysis, full-stack visualization, and production engineering. The main
-> research lesson is simple: information can travel without being believed,
-> and an intervention must be evaluated against both outcomes. The live demo,
-> source code, research report, and reproduction package are linked here.
+> analysis, full-stack visualization, and production engineering. But the
+> broader lesson goes beyond this one project. Intelligent systems should not
+> be judged only by whether they produce convincing behavior. They should be
+> examined through explicit hypotheses, measurable outcomes, reproducible
+> evidence, and honest limitations.
+>
+> This project began with a simple idea about rumors moving through a virtual
+> town. Building it revealed that the most important work often happens when a
+> first design fails: separating belief from repetition, correcting forced
+> propagation, preventing invented evidence, making experiments resumable,
+> controlling model costs, and ensuring that a public demonstration behaves
+> like one shared persistent world.
+>
+> The result is not a claim that a small simulation explains human society. It
+> is a research instrument for asking better questions about AI behavior. Its
+> central finding is that information can travel without being believed, and
+> that an intervention must be evaluated against both transmission and
+> acceptance. More importantly, the project demonstrates a way of working:
+> build the system, test the assumptions, preserve the failures, measure the
+> outcomes, and publish enough evidence for someone else to challenge or
+> reproduce the result.
+>
+> The live town, source code, complete research report, architecture,
+> production evidence, and offline reproduction package are all publicly
+> available through this repository. Thank you for watching.
 
 ## Recording acceptance checklist
 

@@ -104,6 +104,8 @@ python -m unittest discover -s tests -v
 ## Documentation
 
 - [Product Demo and Technical Walkthrough](docs/demo-walkthrough.md)
+- [Exact Demo Rehearsal Guide](docs/demo-rehearsal-guide.md)
+- [Paid Live-AI Acceptance Test](docs/live-ai-acceptance-test.md)
 - [Portfolio Case Study](docs/portfolio-case-study.md)
 - [Research Report](docs/research-report.md)
 - [Confirmatory Results](docs/confirmatory-results.md)
