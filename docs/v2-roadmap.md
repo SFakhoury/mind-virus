@@ -160,7 +160,7 @@ environment, operational tests, and a documented recovery procedure.
 - Reproducible dataset and analysis package where licensing permits **(complete)**
 - Architecture diagrams and experiment provenance **(complete)**
 - Recorded product demonstration and technical walkthrough
-- Portfolio case study explaining decisions, failures, and findings
+- Portfolio case study explaining decisions, failures, and findings **(complete)**
 
 Completion requires another person to reproduce the documented results from
 the released materials.

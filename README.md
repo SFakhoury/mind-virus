@@ -103,6 +103,7 @@ python -m unittest discover -s tests -v
 
 ## Documentation
 
+- [Portfolio Case Study](docs/portfolio-case-study.md)
 - [Research Report](docs/research-report.md)
 - [Confirmatory Results](docs/confirmatory-results.md)
 - [Reproducibility Package](publication/README.md)
@@ -122,6 +123,8 @@ python -m unittest discover -s tests -v
 - Quantitative visualizations
 - Confirmatory research report
 - Interactive visual town prototype
+- Production deployment with persistence, authentication, CI, and observability
+- Licensed, checksummed, offline-reproducible publication package
 
 ## Citation and licensing
 
