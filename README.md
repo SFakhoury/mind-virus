@@ -107,6 +107,7 @@ python -m unittest discover -s tests -v
 - [Confirmatory Results](docs/confirmatory-results.md)
 - [Reproducibility Package](publication/README.md)
 - [Architecture](docs/architecture.md)
+- [Experiment Provenance](docs/experiment-provenance.md)
 - [Research Foundations](docs/research-foundations.md)
 
 

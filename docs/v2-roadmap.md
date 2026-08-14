@@ -157,8 +157,8 @@ environment, operational tests, and a documented recovery procedure.
 **Status: in progress.**
 
 - Full paper-style report with methods, results, robustness, and limitations
-- Reproducible dataset and analysis package where licensing permits
-- Architecture diagrams and experiment provenance
+- Reproducible dataset and analysis package where licensing permits **(complete)**
+- Architecture diagrams and experiment provenance **(complete)**
 - Recorded product demonstration and technical walkthrough
 - Portfolio case study explaining decisions, failures, and findings
 
