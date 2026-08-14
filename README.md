@@ -46,14 +46,22 @@ This distinction separates information exposure from actual belief formation.
 
 ## Project Status
 
-**Current phase: Phase 13 in progress - Production Application**
+**Current phase: Phase 14 in progress - Publication and Portfolio Package**
 
-The research pipeline and visual prototype are complete. The core system supports private memories, scored retrieval, model-backed interpretation, controlled experiments, confirmatory statistical analysis, and an animated browser-based town.
+The research pipeline, visual town, and production staging system are complete.
+The core system supports private memories, scored retrieval, model-backed
+interpretation, controlled experiments, confirmatory statistical analysis,
+durable server-owned simulation state, and an animated browser-based town.
+
+Public deterministic staging: <https://mind-virus-staging.onrender.com>
+
+See the [Phase 13 production validation](docs/phase13-production-validation.md)
+for the deployment, persistence, security, queue, and observability evidence.
 
 Development toward the full research platform continues under the
-[v2.0 roadmap](docs/v2-roadmap.md). Phase 10 adds atomic session checkpoints,
-resumable town state, persistent API budgets, grounded live dialogue,
-hallucination rejection, bounded retries, and safe deterministic fallbacks.
+[v2.0 roadmap](docs/v2-roadmap.md). Phase 14 packages the validated research,
+reproducible artifacts, architecture, demonstration, and engineering lessons
+for publication and portfolio review.
 
 Validate the complete persistence and resume path without paid API calls:
 

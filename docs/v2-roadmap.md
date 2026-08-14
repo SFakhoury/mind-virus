@@ -116,12 +116,14 @@ checks and are reported with limitations and null results.
 
 ## Phase 13: Production Application
 
-**Status: in progress.** Initial production work adds a versioned v1 API,
+**Status: complete.** Production work adds a versioned v1 API,
 SQLite-backed durable storage, and a database-aware health check while
 preserving the prototype routes during migration. The server now atomically
 persists its current town snapshot and exposes restart-safe retrieval through
-the versioned API. Connected browsers now receive server-sent state events,
-while the existing world tick request remains as a compatibility fallback.
+the versioned API. Connected browsers now receive server-sent state events
+and read-only polling, while one server-owned clock advances and persists the
+authoritative world. The legacy manual tick route requires authentication in
+production.
 Production mode now requires a separate application access token for paid
 mutation routes; the OpenAI provider key remains isolated on the server.
 A bounded background queue now supports observable asynchronous work with
@@ -135,6 +137,10 @@ Versioned startup migrations, transactionally consistent backups, isolated
 restore validation, and an incident-recovery runbook are now implemented.
 A Render Blueprint defines the public staging service, CI-gated deployment,
 generated application secret, health gate, and persistent SQLite disk.
+Public staging validation confirmed restart persistence, one-viewer and
+multi-viewer clock consistency, protected mutation routes, observable queued
+work, and zero model usage in deterministic mode. See
+[phase13-production-validation.md](phase13-production-validation.md).
 
 - Versioned backend API and persistent database
 - Browser client with live state synchronization
@@ -143,10 +149,12 @@ generated application secret, health gate, and persistent SQLite disk.
 - Structured logging, metrics, health checks, and error reporting
 - Containerization, CI, deployment, backups, and migration procedures
 
-Completion requires a deployed staging environment, operational tests, and a
-documented recovery procedure.
+Completion criteria were satisfied on August 14, 2026 with a deployed staging
+environment, operational tests, and a documented recovery procedure.
 
 ## Phase 14: Publication and Portfolio Package
+
+**Status: in progress.**
 
 - Full paper-style report with methods, results, robustness, and limitations
 - Reproducible dataset and analysis package where licensing permits

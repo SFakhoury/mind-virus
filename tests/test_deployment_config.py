@@ -25,6 +25,17 @@ class DeploymentConfigTests(unittest.TestCase):
         self.assertIn("Incident recovery", runbook)
         self.assertIn("ProductionStore.restore", drill)
 
+    def test_phase13_has_a_production_validation_record(self):
+        report = Path("docs/phase13-production-validation.md").read_text(
+            encoding="utf-8"
+        )
+        roadmap = Path("docs/v2-roadmap.md").read_text(encoding="utf-8")
+        readme = Path("README.md").read_text(encoding="utf-8")
+
+        self.assertIn("Phase 13 meets its completion criteria", report)
+        self.assertIn("Status: complete", roadmap)
+        self.assertIn("Phase 14 in progress", readme)
+
     def test_render_staging_blueprint_has_durable_storage_and_health_gate(self):
         blueprint = Path("render.yaml").read_text(encoding="utf-8")
         self.assertIn("runtime: docker", blueprint)

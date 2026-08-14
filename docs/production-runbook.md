@@ -15,6 +15,15 @@ and gates deployment on `/api/v1/health`. Because persistent disks require a
 paid Render web service, confirm the displayed monthly price before applying
 the Blueprint.
 
+## Staging acceptance
+
+Before promoting a deployment, verify the health endpoint, both GitHub Actions
+jobs, restart persistence, server-owned clock behavior with zero and multiple
+viewers, unauthorized mutation rejection, authorized queue completion, and
+operational metrics. Record the deployed commit and results in
+`docs/phase13-production-validation.md`. The public deterministic deployment
+must report zero model calls and zero estimated provider cost.
+
 ## Database migrations
 
 SQLite migrations run transactionally at startup using `PRAGMA user_version`.
