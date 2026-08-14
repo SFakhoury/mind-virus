@@ -32,6 +32,7 @@ class DeploymentConfigTests(unittest.TestCase):
         self.assertIn("healthCheckPath: /api/v1/health", blueprint)
         self.assertIn("mountPath: /app/results", blueprint)
         self.assertIn("generateValue: true", blueprint)
+        self.assertIn("MIND_VIRUS_TICK_SECONDS", blueprint)
 
 
 if __name__ == "__main__":

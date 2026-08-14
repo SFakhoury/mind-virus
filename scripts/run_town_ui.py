@@ -16,6 +16,7 @@ from mind_virus.background_jobs import BackgroundJobQueue
 from mind_virus.decision import OpenAIDecisionMaker, TransmissionDecision
 from mind_virus.town_session import TownSession
 from mind_virus.world import WorldState
+from mind_virus.world_runtime import WorldClock
 from mind_virus.production_store import ProductionStore
 from mind_virus.live_sync import LiveStateBroker
 from mind_virus.observability import OperationalMetrics, production_logger
@@ -129,9 +130,11 @@ def make_handler(
     store: ProductionStore | None = None,
     authenticator: APIAuthenticator | None = None,
     jobs: BackgroundJobQueue | None = None,
+    broker: LiveStateBroker | None = None,
+    mutation_lock=None,
 ):
-    broker = LiveStateBroker()
-    mutation_lock = Lock()
+    broker = broker or LiveStateBroker()
+    mutation_lock = mutation_lock or Lock()
     metrics = OperationalMetrics()
     logger = production_logger(LOG_OUTPUT)
 
@@ -233,6 +236,9 @@ def make_handler(
                 self.send_json({"job_id": job_id, "status": "queued"}, 202)
                 return
             if path == "/api/world/tick":
+                if authenticator and authenticator.enabled and not self.authorized():
+                    metrics.increment("authentication_failures_total")
+                    return
                 with mutation_lock:
                     town.tick(5)
                     town.world.save(WORLD_OUTPUT)
@@ -317,6 +323,19 @@ def main() -> None:
     store = ProductionStore(DATABASE_OUTPUT)
     authenticator = APIAuthenticator.from_environment(required=args.production)
     jobs = BackgroundJobQueue()
+    broker = LiveStateBroker()
+    mutation_lock = Lock()
+
+    def advance_world() -> None:
+        with mutation_lock:
+            town.tick(5)
+            town.world.save(WORLD_OUTPUT)
+            broker.publish({"world": town.browser_state()})
+
+    world_clock = WorldClock(
+        advance_world,
+        interval_seconds=float(os.getenv("MIND_VIRUS_TICK_SECONDS", "2.0")),
+    )
     server = ThreadingHTTPServer(
         (HOST, PORT),
         make_handler(
@@ -329,6 +348,8 @@ def main() -> None:
             store,
             authenticator,
             jobs,
+            broker,
+            mutation_lock,
         ),
     )
     url = f"http://{HOST}:{PORT}"
@@ -340,11 +361,14 @@ def main() -> None:
     print("Press Ctrl+C to stop the town server.")
     if not args.production:
         webbrowser.open(url)
+    if experience == "autonomous-town":
+        world_clock.start()
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nTown server stopped.")
     finally:
+        world_clock.stop()
         server.server_close()
         jobs.shutdown()
 
