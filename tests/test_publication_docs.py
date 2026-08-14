@@ -10,6 +10,7 @@ class PublicationDocumentationTests(unittest.TestCase):
         text = (ROOT / "docs" / "architecture.md").read_text(encoding="utf-8")
         self.assertGreaterEqual(text.count("```mermaid"), 3)
         self.assertIn("## Trust boundaries", text)
+        self.assertNotIn("<--", text)
 
     def test_provenance_links_frozen_evidence(self) -> None:
         text = (ROOT / "docs" / "experiment-provenance.md").read_text(

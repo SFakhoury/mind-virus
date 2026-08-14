@@ -20,7 +20,7 @@ flowchart LR
     Jobs["Authenticated background jobs"] --> Town
     Model["Optional OpenAI model"] --> Cognition
     Budget["Call and cost safeguards"] --> Model
-    Metrics["Health, queue, and usage metrics"] <-- API
+    API --> Metrics["Health, queue, and usage metrics"]
 ```
 
 The public staging deployment runs in deterministic simulation mode. It uses
