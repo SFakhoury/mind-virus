@@ -103,6 +103,7 @@ python -m unittest discover -s tests -v
 
 ## Documentation
 
+- [Product Demo and Technical Walkthrough](docs/demo-walkthrough.md)
 - [Portfolio Case Study](docs/portfolio-case-study.md)
 - [Research Report](docs/research-report.md)
 - [Confirmatory Results](docs/confirmatory-results.md)

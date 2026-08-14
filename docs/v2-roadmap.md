@@ -159,7 +159,7 @@ environment, operational tests, and a documented recovery procedure.
 - Full paper-style report with methods, results, robustness, and limitations **(complete)**
 - Reproducible dataset and analysis package where licensing permits **(complete)**
 - Architecture diagrams and experiment provenance **(complete)**
-- Recorded product demonstration and technical walkthrough
+- Recorded product demonstration and technical walkthrough **(script and recording checklist complete; video pending)**
 - Portfolio case study explaining decisions, failures, and findings **(complete)**
 
 Completion requires another person to reproduce the documented results from
