@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use Mind-Virus in research, please cite it using this metadata."
+title: "Mind-Virus: Skepticism, Belief, and Misinformation Propagation in AI Agents"
+type: software
+authors:
+  - family-names: Fakhoury
+    given-names: "Sanad Samer"
+repository-code: "https://github.com/SFakhoury/mind-virus"
+url: "https://mind-virus-staging.onrender.com"
+license: MIT
+keywords:
+  - generative agents
+  - misinformation
+  - belief propagation
+  - skepticism
+  - multi-agent simulation

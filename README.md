@@ -105,6 +105,7 @@ python -m unittest discover -s tests -v
 
 - [Research Report](docs/research-report.md)
 - [Confirmatory Results](docs/confirmatory-results.md)
+- [Reproducibility Package](publication/README.md)
 - [Architecture](docs/architecture.md)
 - [Research Foundations](docs/research-foundations.md)
 
@@ -120,6 +121,12 @@ python -m unittest discover -s tests -v
 - Quantitative visualizations
 - Confirmatory research report
 - Interactive visual town prototype
+
+## Citation and licensing
+
+Citation metadata is available in [CITATION.cff](CITATION.cff). Source code is
+licensed under the [MIT License](LICENSE). Research datasets, documentation,
+and figures are licensed under [CC BY 4.0](publication/LICENSE-DATA.md).
 
 ## Development Philosophy
 
