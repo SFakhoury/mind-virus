@@ -23,7 +23,7 @@ From the repository root, run:
 python -m scripts.reproduce_publication
 ```
 
-The command verifies every dataset checksum, recomputes the Phase 6 and Phase
+The command verifies every canonical UTF-8/LF dataset checksum, recomputes the Phase 6 and Phase
 12 analyses, compares them with the committed outputs and report, and prints a
 summary. It makes no network or API requests.
 
@@ -32,7 +32,8 @@ summary. It makes no network or API requests.
 The experiment design, caveats, and interpretation are documented in
 `docs/research-report.md`, `docs/confirmatory-results.md`, and
 `docs/phase12-confirmatory-robustness-results.md`. Dataset integrity hashes are
-recorded in `SHA256SUMS`.
+recorded in `SHA256SUMS`. Canonical line endings make these integrity checks
+identical on Windows and Linux checkouts.
 
 Research materials are available under CC BY 4.0; source code is available
 under the MIT License. See `LICENSE-DATA.md` and the repository root `LICENSE`.

@@ -21,7 +21,11 @@ def verify_checksums() -> None:
     for entry in entries:
         expected, relative_path = entry.split("  ", 1)
         path = PACKAGE / relative_path
-        observed = hashlib.sha256(path.read_bytes()).hexdigest()
+        # Git may materialize text files with CRLF on Windows and LF on Linux.
+        # Hash a canonical UTF-8/LF representation so integrity verification
+        # describes the dataset content rather than the checkout platform.
+        canonical = path.read_text(encoding="utf-8").replace("\r\n", "\n")
+        observed = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
         if observed != expected:
             raise ValueError(f"Checksum mismatch: {relative_path}")
 

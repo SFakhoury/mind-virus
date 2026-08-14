@@ -19,6 +19,15 @@ class PublicationPackageTests(unittest.TestCase):
     def test_publication_checksums(self) -> None:
         verify_checksums()
 
+    def test_checksums_are_independent_of_platform_line_endings(self) -> None:
+        source = (PACKAGE / "data" / "phase6_confirmatory_analysis.json").read_text(
+            encoding="utf-8"
+        )
+        self.assertEqual(
+            source.replace("\r\n", "\n"),
+            source.replace("\n", "\r\n").replace("\r\r\n", "\r\n").replace("\r\n", "\n"),
+        )
+
     def test_phase6_analysis_is_reproducible(self) -> None:
         result = reproduce_phase6()
         self.assertEqual(result["design"]["condition_trials"], 120)
